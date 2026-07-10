@@ -1,8 +1,7 @@
-package com.aditya.site_expense_manager.service;
+package com.aditya.siteexpensemanager.service;
 
-import com.aditya.site_expense_manager.dto.request.SiteRequestDto;
-import com.aditya.site_expense_manager.dto.response.SiteResponseDto;
-import org.springframework.stereotype.Service;
+import com.aditya.siteexpensemanager.dto.request.SiteRequestDto;
+import com.aditya.siteexpensemanager.dto.response.SiteResponseDto;
 
 import java.util.List;
 

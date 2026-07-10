@@ -1,4 +1,4 @@
-package com.aditya.site_expense_manager.entity;
+package com.aditya.siteexpensemanager.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

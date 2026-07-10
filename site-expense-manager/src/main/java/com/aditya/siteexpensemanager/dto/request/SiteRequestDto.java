@@ -1,4 +1,4 @@
-package com.aditya.site_expense_manager.dto.request;
+package com.aditya.siteexpensemanager.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

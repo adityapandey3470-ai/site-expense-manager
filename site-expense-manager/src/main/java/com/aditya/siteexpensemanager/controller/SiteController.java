@@ -1,11 +1,9 @@
-package com.aditya.site_expense_manager.controller;
+package com.aditya.siteexpensemanager.controller;
 
-import com.aditya.site_expense_manager.dto.request.SiteRequestDto;
-import com.aditya.site_expense_manager.dto.response.SiteResponseDto;
-import com.aditya.site_expense_manager.service.SiteService;
+import com.aditya.siteexpensemanager.dto.request.SiteRequestDto;
+import com.aditya.siteexpensemanager.dto.response.SiteResponseDto;
+import com.aditya.siteexpensemanager.service.SiteService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

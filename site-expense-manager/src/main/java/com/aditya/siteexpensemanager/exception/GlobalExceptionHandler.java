@@ -1,4 +1,4 @@
-package com.aditya.site_expense_manager.exception;
+package com.aditya.siteexpensemanager.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

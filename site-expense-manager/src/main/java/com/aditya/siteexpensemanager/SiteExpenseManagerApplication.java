@@ -1,10 +1,7 @@
-package com.aditya.site_expense_manager;
+package com.aditya.siteexpensemanager;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-
-import java.sql.DatabaseMetaData;
 
 @SpringBootApplication
 public class SiteExpenseManagerApplication {

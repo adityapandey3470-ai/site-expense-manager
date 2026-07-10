@@ -1,6 +1,6 @@
-package com.aditya.site_expense_manager.repository;
+package com.aditya.siteexpensemanager.repository;
 
-import com.aditya.site_expense_manager.entity.Site;
+import com.aditya.siteexpensemanager.entity.Site;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

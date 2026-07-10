@@ -1,4 +1,4 @@
-package com.aditya.site_expense_manager.exception;
+package com.aditya.siteexpensemanager.exception;
 
 public class ResourceNotfoundException extends RuntimeException{
     public ResourceNotfoundException(String message){

@@ -1,13 +1,12 @@
-package com.aditya.site_expense_manager.serviceimpl;
+package com.aditya.siteexpensemanager.serviceimpl;
 
-import com.aditya.site_expense_manager.dto.request.SiteRequestDto;
-import com.aditya.site_expense_manager.dto.response.SiteResponseDto;
-import com.aditya.site_expense_manager.entity.Site;
-import com.aditya.site_expense_manager.exception.ResourceNotfoundException;
-import com.aditya.site_expense_manager.mapper.SiteMapper;
-import com.aditya.site_expense_manager.repository.SiteRepository;
-import com.aditya.site_expense_manager.service.SiteService;
-import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import com.aditya.siteexpensemanager.dto.request.SiteRequestDto;
+import com.aditya.siteexpensemanager.dto.response.SiteResponseDto;
+import com.aditya.siteexpensemanager.entity.Site;
+import com.aditya.siteexpensemanager.exception.ResourceNotfoundException;
+import com.aditya.siteexpensemanager.mapper.SiteMapper;
+import com.aditya.siteexpensemanager.repository.SiteRepository;
+import com.aditya.siteexpensemanager.service.SiteService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

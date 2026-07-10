@@ -1,8 +1,8 @@
-package com.aditya.site_expense_manager.mapper;
+package com.aditya.siteexpensemanager.mapper;
 
-import com.aditya.site_expense_manager.dto.request.SiteRequestDto;
-import com.aditya.site_expense_manager.dto.response.SiteResponseDto;
-import com.aditya.site_expense_manager.entity.Site;
+import com.aditya.siteexpensemanager.dto.request.SiteRequestDto;
+import com.aditya.siteexpensemanager.dto.response.SiteResponseDto;
+import com.aditya.siteexpensemanager.entity.Site;
 import org.springframework.stereotype.Component;
 
 @Component

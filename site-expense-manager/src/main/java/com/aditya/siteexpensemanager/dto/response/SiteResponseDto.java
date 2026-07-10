@@ -1,4 +1,4 @@
-package com.aditya.site_expense_manager.dto.response;
+package com.aditya.siteexpensemanager.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
