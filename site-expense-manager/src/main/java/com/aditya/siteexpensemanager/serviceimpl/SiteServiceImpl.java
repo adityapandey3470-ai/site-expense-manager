@@ -3,7 +3,7 @@ package com.aditya.siteexpensemanager.serviceimpl;
 import com.aditya.siteexpensemanager.dto.request.SiteRequestDto;
 import com.aditya.siteexpensemanager.dto.response.SiteResponseDto;
 import com.aditya.siteexpensemanager.entity.Site;
-import com.aditya.siteexpensemanager.exception.ResourceNotfoundException;
+import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
 import com.aditya.siteexpensemanager.mapper.SiteMapper;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.service.SiteService;
@@ -60,14 +60,14 @@ public class SiteServiceImpl implements SiteService {
         @Override
         public SiteResponseDto getSiteById(Long id){
         var site = siteRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotfoundException("Site not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
         return siteMapper.toResponseDto(site);
         }
 
         @Override
         public SiteResponseDto updateSite(Long id, SiteRequestDto requestDto){
         var site = siteRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotfoundException("Site not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
         validateSiteDates(requestDto);
         validateSiteCodeForUpdate(requestDto.getSiteCode(), id);
         siteMapper.updateEntityFromDto(requestDto, site);
@@ -78,7 +78,7 @@ public class SiteServiceImpl implements SiteService {
         @Override
         public void deleteSiteById(Long id){
         var site = siteRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotfoundException("Site not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
 
                   site.setDeleted(true);
                   site.setActive(false);
@@ -88,7 +88,7 @@ public class SiteServiceImpl implements SiteService {
         @Override
         public SiteResponseDto activateSite(Long id){
         Site site = siteRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotfoundException("Site not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
         site.setActive(true);
           Site updatedSite = siteRepository.save(site);
         return siteMapper.toResponseDto(updatedSite);
@@ -99,7 +99,7 @@ public class SiteServiceImpl implements SiteService {
         @Override
         public SiteResponseDto deactivateSite(Long id){
         Site site = siteRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new ResourceNotfoundException("Site not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
         site.setActive(false);
         Site updatedSite = siteRepository.save(site);
         return siteMapper.toResponseDto(updatedSite);

@@ -39,7 +39,7 @@ public class SiteController {
         return ResponseEntity.ok(responseDto);
     }
     @PutMapping("/{id}")
-    public ResponseEntity<SiteResponseDto> updateSite(@PathVariable Long id, @Valid @RequestBody SiteRequestDto requestDto) {
+    public ResponseEntity<SiteResponseDto> updateSite(@PathVariable Long id,  @Valid @RequestBody SiteRequestDto requestDto) {
         SiteResponseDto responseDto = siteService.updateSite(id, requestDto);
         return ResponseEntity.ok(responseDto);
     }
