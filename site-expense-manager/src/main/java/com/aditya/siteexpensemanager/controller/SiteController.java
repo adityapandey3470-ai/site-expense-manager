@@ -4,6 +4,7 @@ import com.aditya.siteexpensemanager.dto.request.SiteRequestDto;
 import com.aditya.siteexpensemanager.dto.response.SiteResponseDto;
 import com.aditya.siteexpensemanager.service.SiteService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,7 @@ public class SiteController {
     @PostMapping
     public ResponseEntity<SiteResponseDto> createSite(@Valid @RequestBody SiteRequestDto requestDto) {
         SiteResponseDto responseDto = siteService.createSite(requestDto);
-        return  ResponseEntity.ok(responseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
 }
 
     @GetMapping

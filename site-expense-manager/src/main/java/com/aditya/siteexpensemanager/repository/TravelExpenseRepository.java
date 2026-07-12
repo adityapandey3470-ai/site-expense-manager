@@ -9,9 +9,11 @@ import java.util.Optional;
 public interface TravelExpenseRepository
         extends JpaRepository<TravelExpense, Long> {
 
-    List<TravelExpense> findAllByDeletedFalse();
+    List<TravelExpense> findAllByDeletedFalseAndSiteDeletedFalse();
 
-    Optional<TravelExpense> findByIdAndDeletedFalse(Long id);
+    Optional<TravelExpense> findByIdAndDeletedFalseAndSiteDeletedFalse(Long id);
 
     boolean existsByTravelCode(String travelCode);
+
+    List<TravelExpense> findAllBySite_IdAndDeletedFalse(Long siteId);
 }

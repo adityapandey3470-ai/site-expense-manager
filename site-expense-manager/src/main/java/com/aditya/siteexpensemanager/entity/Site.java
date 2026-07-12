@@ -6,8 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "sites")
@@ -34,8 +35,9 @@ public class Site {
     @Column(nullable = false)
     private String projectManager;
 
-    @Column(nullable = false)
-    private Double budget;
+
+    @Column(name = "budget", precision = 15, scale = 2, nullable = false)
+    private BigDecimal budget;
 
     @Column(nullable = false)
     private LocalDate startDate;

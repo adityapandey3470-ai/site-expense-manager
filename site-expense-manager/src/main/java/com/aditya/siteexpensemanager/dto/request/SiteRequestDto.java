@@ -9,8 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -39,7 +39,7 @@ public class SiteRequestDto {
 
     @NotNull(message = "Budget is required")
     @Positive(message = "Budget must be a positive value")
-    private Double budget;
+    private BigDecimal budget;
 
     @NotNull(message = "Start date is required")
     private LocalDate startDate;

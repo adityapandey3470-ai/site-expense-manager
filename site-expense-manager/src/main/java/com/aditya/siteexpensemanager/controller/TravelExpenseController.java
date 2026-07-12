@@ -30,7 +30,7 @@ public class TravelExpenseController {
                 travelExpenseService
                         .createTravelExpense(requestDto);
 
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @GetMapping

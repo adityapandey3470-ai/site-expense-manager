@@ -1,4 +1,4 @@
-package com.aditya.site_expense_manager;
+package com.aditya.siteexpensemanager;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

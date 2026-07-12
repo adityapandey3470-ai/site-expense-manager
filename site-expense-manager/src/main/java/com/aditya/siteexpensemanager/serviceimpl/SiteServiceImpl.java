@@ -6,9 +6,11 @@ import com.aditya.siteexpensemanager.entity.Site;
 import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
 import com.aditya.siteexpensemanager.mapper.SiteMapper;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
+import com.aditya.siteexpensemanager.repository.TravelExpenseRepository;
 import com.aditya.siteexpensemanager.service.SiteService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -16,10 +18,15 @@ public class SiteServiceImpl implements SiteService {
 
     private final SiteRepository siteRepository;
     private final SiteMapper siteMapper;
+    private final TravelExpenseRepository travelExpenseRepository;
 
-    public SiteServiceImpl(SiteRepository siteRepository, SiteMapper siteMapper) {
+
+
+    public SiteServiceImpl(SiteRepository siteRepository, SiteMapper siteMapper, TravelExpenseRepository travelExpenseRepository) {
         this.siteRepository = siteRepository;
         this.siteMapper = siteMapper;
+        this.travelExpenseRepository = travelExpenseRepository;
+
     }
 
     private void validateSiteDates(SiteRequestDto requestDto) {
@@ -37,6 +44,20 @@ public class SiteServiceImpl implements SiteService {
     private void validateSiteCodeForUpdate(String siteCode, Long id) {
         if(siteRepository.existsBySiteCodeAndIdNot(siteCode,id)) {
             throw new IllegalArgumentException("Site code already exists");
+        }
+    }
+
+    private void validateExistingTravelExpenses(Long siteId, LocalDate startDate, LocalDate endDate) {
+        var expenses = travelExpenseRepository.findAllBySite_IdAndDeletedFalse(siteId);
+
+        boolean invalidExpenseExists = expenses.stream()
+                .anyMatch(expense ->
+                        expense.getTravelDate().isBefore(startDate)
+                                || expense.getTravelDate().isAfter(endDate));
+
+        if(invalidExpenseExists) {
+            throw new IllegalArgumentException(
+                    "site date range cannot be changed because existing travel expenses are outside the new date range");
         }
     }
 
@@ -68,8 +89,19 @@ public class SiteServiceImpl implements SiteService {
         public SiteResponseDto updateSite(Long id, SiteRequestDto requestDto){
         var site = siteRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
+
         validateSiteDates(requestDto);
         validateSiteCodeForUpdate(requestDto.getSiteCode(), id);
+
+        validateExistingTravelExpenses(
+                id,
+                requestDto.getStartDate(),
+                requestDto.getEndDate()
+
+
+
+        );
+
         siteMapper.updateEntityFromDto(requestDto, site);
         var savedSite = siteRepository.save(site);
         return siteMapper.toResponseDto(savedSite);

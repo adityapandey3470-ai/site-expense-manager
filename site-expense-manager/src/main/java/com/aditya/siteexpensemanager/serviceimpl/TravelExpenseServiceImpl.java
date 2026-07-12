@@ -34,7 +34,7 @@ public class TravelExpenseServiceImpl
                 .findByIdAndDeletedFalse(requestDto.getSiteId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Site not found with id: "
+                                " Active Site not found with id: "
                                         + requestDto.getSiteId()
                         )
                 );
@@ -42,6 +42,14 @@ public class TravelExpenseServiceImpl
         if (!site.getActive()) {
             throw new IllegalArgumentException(
                     "Travel expense cannot be created for inactive site"
+            );
+        }
+
+        if (requestDto.getTravelDate().isBefore(site.getStartDate())
+                || requestDto.getTravelDate().isAfter(site.getEndDate())) {
+
+            throw new IllegalArgumentException(
+                    "Travel date must be between site start date and end date"
             );
         }
 
@@ -66,7 +74,7 @@ public class TravelExpenseServiceImpl
     getAllTravelExpenses() {
 
         return travelExpenseRepository
-                .findAllByDeletedFalse()
+                .findAllByDeletedFalseAndSiteDeletedFalse()
                 .stream()
                 .map(travelExpenseMapper::toResponseDto)
                 .toList();
@@ -105,6 +113,14 @@ public class TravelExpenseServiceImpl
         if (!site.getActive()) {
             throw new IllegalArgumentException(
                     "Travel expense cannot be assigned to inactive site"
+            );
+        }
+
+        if (requestDto.getTravelDate().isBefore(site.getStartDate())
+                || requestDto.getTravelDate().isAfter(site.getEndDate())) {
+
+            throw new IllegalArgumentException(
+                    "Travel date must be between site start date and end date"
             );
         }
 
@@ -204,7 +220,7 @@ public class TravelExpenseServiceImpl
     ) {
 
         return travelExpenseRepository
-                .findByIdAndDeletedFalse(id)
+                .findByIdAndDeletedFalseAndSiteDeletedFalse(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Travel expense not found with id: "

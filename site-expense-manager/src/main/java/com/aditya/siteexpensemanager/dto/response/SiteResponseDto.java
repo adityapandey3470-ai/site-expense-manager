@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 
 @Getter
@@ -22,7 +22,7 @@ public class SiteResponseDto {
     private String siteCode;
     private String location;
     private String projectManager;
-    private Double budget;
+    private BigDecimal budget;
     private LocalDate startDate;
     private LocalDate endDate;
     private Boolean active;
