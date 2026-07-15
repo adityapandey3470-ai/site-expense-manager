@@ -4,6 +4,8 @@ package com.aditya.siteexpensemanager.controller;
 import com.aditya.siteexpensemanager.dto.request.RequestRequestDto;
 import com.aditya.siteexpensemanager.dto.response.RequestResponseDto;
 import com.aditya.siteexpensemanager.service.RequestService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,11 +16,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/requests")
+@Tag(name = "Request APIs", description = "Operations for managing requests")
 @RequiredArgsConstructor
 public class RequestController {
 
     private final RequestService requestService;
 
+    @Operation(summary = "Create a new request")
     @PostMapping
     public ResponseEntity<RequestResponseDto> createRequest(
             @Valid @RequestBody RequestRequestDto requestDto) {
@@ -31,6 +35,7 @@ public class RequestController {
                 .body(responseDto);
     }
 
+    @Operation(summary = "Get all requests")
     @GetMapping
     public ResponseEntity<List<RequestResponseDto>> getAllRequests() {
 
@@ -39,6 +44,7 @@ public class RequestController {
         );
     }
 
+    @Operation(summary = "Get request by ID")
     @GetMapping("/{id}")
     public ResponseEntity<RequestResponseDto> getRequestById(
             @PathVariable Long id) {
@@ -48,6 +54,7 @@ public class RequestController {
         );
     }
 
+    @Operation(summary = "Update a request")
     @PutMapping("/{id}")
     public ResponseEntity<RequestResponseDto> updateRequest(
             @PathVariable Long id,
@@ -58,7 +65,8 @@ public class RequestController {
         );
     }
 
-    @PatchMapping("/{id}/soft-delete")
+    @Operation(summary = "Soft delete a request")
+    @PatchMapping("/{id}")
     public ResponseEntity<Void> softDeleteRequest(
             @PathVariable Long id) {
 
@@ -67,6 +75,7 @@ public class RequestController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Hard delete a request")
     @DeleteMapping("/{id}/hard")
     public ResponseEntity<Void> hardDeleteRequest(
             @PathVariable Long id) {
@@ -76,6 +85,7 @@ public class RequestController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Activate a request")
     @PatchMapping("/{id}/activate")
     public ResponseEntity<RequestResponseDto> activateRequest(
             @PathVariable Long id) {
@@ -85,6 +95,7 @@ public class RequestController {
         );
     }
 
+    @Operation(summary = "Deactivate a request")
     @PatchMapping("/{id}/deactivate")
     public ResponseEntity<RequestResponseDto> deactivateRequest(
             @PathVariable Long id) {
@@ -94,6 +105,7 @@ public class RequestController {
         );
     }
 
+    @Operation(summary = "Approve a request")
     @PatchMapping("/{id}/approve")
     public ResponseEntity<RequestResponseDto> approveRequest(
             @PathVariable Long id,
@@ -104,6 +116,7 @@ public class RequestController {
         );
     }
 
+    @Operation(summary = "Reject a request")
     @PatchMapping("/{id}/reject")
     public ResponseEntity<RequestResponseDto> rejectRequest(
             @PathVariable Long id,

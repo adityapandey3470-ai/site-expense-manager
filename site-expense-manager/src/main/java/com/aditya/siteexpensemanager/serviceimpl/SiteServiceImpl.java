@@ -5,6 +5,8 @@ import com.aditya.siteexpensemanager.dto.response.SiteResponseDto;
 import com.aditya.siteexpensemanager.entity.Site;
 import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
 import com.aditya.siteexpensemanager.mapper.SiteMapper;
+import com.aditya.siteexpensemanager.repository.LedgerRepository;
+import com.aditya.siteexpensemanager.repository.RequestRepository;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.repository.TravelExpenseRepository;
 import com.aditya.siteexpensemanager.service.SiteService;
@@ -19,15 +21,17 @@ public class SiteServiceImpl implements SiteService {
     private final SiteRepository siteRepository;
     private final SiteMapper siteMapper;
     private final TravelExpenseRepository travelExpenseRepository;
+    private final RequestRepository requestRepository;
+    private final LedgerRepository ledgerRepository;
 
-
-
-    public SiteServiceImpl(SiteRepository siteRepository, SiteMapper siteMapper, TravelExpenseRepository travelExpenseRepository) {
+    public SiteServiceImpl(SiteRepository siteRepository, SiteMapper siteMapper, TravelExpenseRepository travelExpenseRepository, RequestRepository requestRepository, LedgerRepository ledgerRepository) {
         this.siteRepository = siteRepository;
         this.siteMapper = siteMapper;
         this.travelExpenseRepository = travelExpenseRepository;
-
+        this.requestRepository = requestRepository;
+        this.ledgerRepository = ledgerRepository;
     }
+
 
     private void validateSiteDates(SiteRequestDto requestDto) {
         if(requestDto.getEndDate().isBefore(requestDto.getStartDate())) {
@@ -71,7 +75,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         @Override
-    public List<SiteResponseDto> getAllSites() {
+        public List<SiteResponseDto> getAllSites() {
         var sites = siteRepository.findAllByDeletedFalse();
         return sites.stream()
                 .map(siteMapper::toResponseDto)
@@ -112,9 +116,40 @@ public class SiteServiceImpl implements SiteService {
         var site = siteRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
 
+            if (travelExpenseRepository.existsBySite_Id(id)
+                    || requestRepository.existsBySite_Id(id)
+                    || ledgerRepository.existsBySite_Id(id)) {
+
+                throw new IllegalStateException(
+                        "Cannot delete site because related records exist.");
+            }
+
                   site.setDeleted(true);
                   site.setActive(false);
                    siteRepository.save(site);
+        }
+
+
+        @Override
+        public void hardDeleteById(Long id){
+        var site = siteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
+
+            if(!site.getDeleted()){
+                throw new IllegalStateException("Please soft delete the site before permanently deleting it");
+
+
+            }
+            if (travelExpenseRepository.existsBySite_Id(id)
+                    || requestRepository.existsBySite_Id(id)
+                    || ledgerRepository.existsBySite_Id(id)) {
+
+                throw new IllegalStateException(
+                        "Cannot permanently delete site because related records exist.");
+            }
+
+               siteRepository.delete(site);
+
         }
 
         @Override

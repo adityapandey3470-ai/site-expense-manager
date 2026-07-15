@@ -52,7 +52,9 @@ public class Request {
 
     private LocalDate actionDate;
 
+    @Builder.Default
     private boolean active = true;
 
+    @Builder.Default
     private boolean deleted = false;
 }

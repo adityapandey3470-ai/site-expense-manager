@@ -5,15 +5,18 @@ import com.aditya.siteexpensemanager.dto.response.RequestResponseDto;
 import com.aditya.siteexpensemanager.entity.Request;
 import com.aditya.siteexpensemanager.entity.Site;
 import com.aditya.siteexpensemanager.entity.TravelExpense;
+import com.aditya.siteexpensemanager.enums.LedgerSourceType;
 import com.aditya.siteexpensemanager.enums.RequestStatus;
 import com.aditya.siteexpensemanager.enums.RequestType;
 import com.aditya.siteexpensemanager.enums.TravelExpenseStatus;
 import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
 import com.aditya.siteexpensemanager.mapper.RequestMapper;
+import com.aditya.siteexpensemanager.repository.LedgerRepository;
 import com.aditya.siteexpensemanager.repository.RequestRepository;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.repository.TravelExpenseRepository;
 import com.aditya.siteexpensemanager.service.RequestService;
+import com.aditya.siteexpensemanager.service.TravelExpenseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,8 +33,11 @@ public class RequestServiceImpl implements RequestService {
     private final SiteRepository siteRepository;
     private final TravelExpenseRepository travelExpenseRepository;
     private final RequestMapper requestMapper;
+    private final TravelExpenseService travelExpenseService;
+    private final LedgerRepository ledgerRepository;
 
     @Override
+    @Transactional
     public RequestResponseDto createRequest(RequestRequestDto requestDto) {
 
         Site site = siteRepository
@@ -70,7 +76,7 @@ public class RequestServiceImpl implements RequestService {
         if (requestDto.getTravelExpenseId() != null) {
 
             travelExpense = travelExpenseRepository
-                    .findByIdAndDeletedFalseAndSiteDeletedFalse(
+                    .findLockedByIdAndDeletedFalseAndSiteDeletedFalse(
                             requestDto.getTravelExpenseId()
                     )
                     .orElseThrow(() ->
@@ -82,6 +88,22 @@ public class RequestServiceImpl implements RequestService {
             if (!travelExpense.getSite().getId().equals(site.getId())) {
                 throw new IllegalArgumentException(
                         "Travel expense does not belong to the selected site"
+                );
+            }
+
+            if (travelExpense.getTravelStatus() != TravelExpenseStatus.PENDING) {
+                throw new IllegalStateException(
+                        "Only pending travel expense can be requested"
+                );
+            }
+
+            if (requestRepository
+                    .existsByTravelExpense_IdAndStatusAndDeletedFalseAndActiveTrue(
+                            travelExpense.getId(),
+                            RequestStatus.PENDING
+                    )) {
+                throw new IllegalStateException(
+                        "A pending request already exists for this travel expense"
                 );
             }
         }
@@ -114,18 +136,19 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public RequestResponseDto getRequestById(Long id) {
 
-        Request request = getExistingRequest(id);
+        Request request = getLockedExistingRequest(id);
 
         return requestMapper.toResponseDto(request);
     }
 
     @Override
+    @Transactional
     public RequestResponseDto updateRequest(
             Long id,
             RequestRequestDto requestDto
     ) {
 
-        Request existingRequest = getExistingRequest(id);
+        Request existingRequest = getLockedExistingRequest(id);
 
         if (existingRequest.getStatus()
                 != RequestStatus.PENDING) {
@@ -169,7 +192,7 @@ public class RequestServiceImpl implements RequestService {
         if (requestDto.getTravelExpenseId() != null) {
 
             travelExpense = travelExpenseRepository
-                    .findByIdAndDeletedFalseAndSiteDeletedFalse(
+                    .findLockedByIdAndDeletedFalseAndSiteDeletedFalse(
                             requestDto.getTravelExpenseId()
                     )
                     .orElseThrow(() ->
@@ -182,6 +205,23 @@ public class RequestServiceImpl implements RequestService {
             if (!travelExpense.getSite().getId().equals(site.getId())) {
                 throw new IllegalArgumentException(
                         "Travel expense does not belong to the selected site"
+                );
+            }
+
+            if (travelExpense.getTravelStatus() != TravelExpenseStatus.PENDING) {
+                throw new IllegalStateException(
+                        "Only pending travel expense can be requested"
+                );
+            }
+
+            if (requestRepository
+                    .existsByTravelExpense_IdAndStatusAndDeletedFalseAndActiveTrueAndIdNot(
+                            travelExpense.getId(),
+                            RequestStatus.PENDING,
+                            existingRequest.getId()
+                    )) {
+                throw new IllegalStateException(
+                        "A pending request already exists for this travel expense"
                 );
             }
         }
@@ -201,9 +241,19 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public void softDeleteRequest(Long id) {
 
-        Request request = getExistingRequest(id);
+        Request request = getLockedExistingRequest(id);
+
+        if (ledgerRepository.existsBySourceTypeAndSourceIdAndDeletedFalse(
+                LedgerSourceType.REQUEST,
+                id
+        )) {
+            throw new IllegalStateException(
+                    "Request cannot be deleted because it is referenced by a ledger"
+            );
+        }
 
         request.setDeleted(true);
         request.setActive(false);
@@ -222,13 +272,23 @@ public class RequestServiceImpl implements RequestService {
                         )
                 );
 
+        if (ledgerRepository.existsBySourceTypeAndSourceIdAndDeletedFalse(
+                LedgerSourceType.REQUEST,
+                id
+        )) {
+            throw new IllegalStateException(
+                    "Request cannot be hard deleted because it is referenced by a ledger"
+            );
+        }
+
         requestRepository.delete(request);
     }
 
     @Override
+    @Transactional
     public RequestResponseDto activateRequest(Long id) {
 
-        Request request = getExistingRequest(id);
+        Request request = getLockedExistingRequest(id);
 
         if (!request.getSite().getActive()) {
             throw new IllegalStateException(
@@ -245,9 +305,10 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional
     public RequestResponseDto deactivateRequest(Long id) {
 
-        Request request = getExistingRequest(id);
+        Request request = getLockedExistingRequest(id);
 
         request.setActive(false);
 
@@ -264,7 +325,7 @@ public class RequestServiceImpl implements RequestService {
             String approverName
     ) {
 
-        Request request = getExistingRequest(id);
+        Request request = getLockedExistingRequest(id);
 
         if (approverName == null || approverName.isBlank()) {
             throw new IllegalArgumentException(
@@ -281,11 +342,8 @@ public class RequestServiceImpl implements RequestService {
 
 
         if (request.getTravelExpense() != null) {
-            request.getTravelExpense()
-                    .setTravelStatus(TravelExpenseStatus.APPROVED);
-
-            travelExpenseRepository.save(
-                    request.getTravelExpense()
+            travelExpenseService.markAsApproved(
+                    request.getTravelExpense().getId()
             );
         }
 
@@ -325,11 +383,8 @@ public class RequestServiceImpl implements RequestService {
         request.setActionDate(LocalDate.now());
 
         if (request.getTravelExpense() != null) {
-            request.getTravelExpense()
-                    .setTravelStatus(TravelExpenseStatus.REJECTED);
-
-            travelExpenseRepository.save(
-                    request.getTravelExpense()
+            travelExpenseService.markAsRejected(
+                    request.getTravelExpense().getId()
             );
         }
 
@@ -343,6 +398,17 @@ public class RequestServiceImpl implements RequestService {
 
         return requestRepository
                 .findByIdAndDeletedFalseAndSiteDeletedFalse(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Request not found with id: " + id
+                        )
+                );
+    }
+
+    private Request getLockedExistingRequest(Long id) {
+
+        return requestRepository
+                .findLockedByIdAndDeletedFalseAndSiteDeletedFalse(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
                                 "Request not found with id: " + id

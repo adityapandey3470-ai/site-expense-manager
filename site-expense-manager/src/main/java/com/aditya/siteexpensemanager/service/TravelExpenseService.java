@@ -24,7 +24,6 @@ public interface TravelExpenseService {
 
     void hardDeleteTravelExpenseById(Long id);
 
-    TravelExpenseResponseDto approveTravelExpenseById(Long id);
-
-    TravelExpenseResponseDto rejectTravelExpenseById(Long id);
+    void markAsApproved(Long id);
+    void markAsRejected(Long id);
 }

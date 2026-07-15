@@ -4,9 +4,12 @@ import com.aditya.siteexpensemanager.dto.request.TravelExpenseRequestDto;
 import com.aditya.siteexpensemanager.dto.response.TravelExpenseResponseDto;
 import com.aditya.siteexpensemanager.entity.Site;
 import com.aditya.siteexpensemanager.entity.TravelExpense;
+import com.aditya.siteexpensemanager.enums.LedgerSourceType;
 import com.aditya.siteexpensemanager.enums.TravelExpenseStatus;
 import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
 import com.aditya.siteexpensemanager.mapper.TravelExpenseMapper;
+import com.aditya.siteexpensemanager.repository.LedgerRepository;
+import com.aditya.siteexpensemanager.repository.RequestRepository;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.repository.TravelExpenseRepository;
 import com.aditya.siteexpensemanager.service.TravelExpenseService;
@@ -24,6 +27,8 @@ public class TravelExpenseServiceImpl
     private final TravelExpenseRepository travelExpenseRepository;
     private final SiteRepository siteRepository;
     private final TravelExpenseMapper travelExpenseMapper;
+    private final RequestRepository requestRepository;
+    private final LedgerRepository ledgerRepository;
 
     @Override
     public TravelExpenseResponseDto createTravelExpense(
@@ -101,6 +106,12 @@ public class TravelExpenseServiceImpl
         TravelExpense travelExpense =
                 findActiveTravelExpenseById(id);
 
+        if (travelExpense.getTravelStatus() != TravelExpenseStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending travel expense can be updated"
+            );
+        }
+
         Site site = siteRepository
                 .findByIdAndDeletedFalse(requestDto.getSiteId())
                 .orElseThrow(() ->
@@ -143,6 +154,21 @@ public class TravelExpenseServiceImpl
         TravelExpense travelExpense =
                 findActiveTravelExpenseById(id);
 
+        if (requestRepository.existsByTravelExpense_IdAndDeletedFalse(id)) {
+            throw new IllegalStateException(
+                    "Travel expense cannot be deleted because it is linked to a request"
+            );
+        }
+
+        if (ledgerRepository.existsBySourceTypeAndSourceIdAndDeletedFalse(
+                LedgerSourceType.TRAVEL_EXPENSE,
+                id
+        ) || ledgerRepository.existsActiveRequestLedgerForTravelExpense(id)) {
+            throw new IllegalStateException(
+                    "Travel expense cannot be deleted because it is linked to a ledger entry"
+            );
+        }
+
         travelExpense.setDeleted(true);
 
         travelExpenseRepository.save(travelExpense);
@@ -160,59 +186,53 @@ public class TravelExpenseServiceImpl
                                 )
                         );
 
+        if (requestRepository.existsByTravelExpense_Id(id)) {
+            throw new IllegalStateException(
+                    "Travel expense cannot be hard deleted because it is linked to a request"
+            );
+        }
+
+        if (ledgerRepository.existsBySourceTypeAndSourceId(
+                LedgerSourceType.TRAVEL_EXPENSE,
+                id
+        )) {
+            throw new IllegalStateException(
+                    "Travel expense cannot be hard deleted because it is linked to a ledger entry"
+            );
+        }
+
         travelExpenseRepository.delete(travelExpense);
     }
 
+
     @Override
-    public TravelExpenseResponseDto
-    approveTravelExpenseById(Long id) {
+    public void markAsApproved(Long id) {
 
-        TravelExpense travelExpense =
-                findActiveTravelExpenseById(id);
+        TravelExpense travelExpense = findActiveTravelExpenseById(id);
 
-        if (travelExpense.getTravelStatus()
-                == TravelExpenseStatus.APPROVED) {
-
-            throw new IllegalArgumentException(
-                    "Travel expense is already approved"
+        if (travelExpense.getTravelStatus() != TravelExpenseStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending travel expense can be approved"
             );
         }
 
-        travelExpense.setTravelStatus(
-                TravelExpenseStatus.APPROVED
-        );
-
-        TravelExpense approvedTravelExpense =
-                travelExpenseRepository.save(travelExpense);
-
-        return travelExpenseMapper
-                .toResponseDto(approvedTravelExpense);
+        travelExpense.setTravelStatus(TravelExpenseStatus.APPROVED);
+        travelExpenseRepository.save(travelExpense);
     }
 
     @Override
-    public TravelExpenseResponseDto
-    rejectTravelExpenseById(Long id) {
+    public void markAsRejected(Long id) {
 
-        TravelExpense travelExpense =
-                findActiveTravelExpenseById(id);
+        TravelExpense travelExpense = findActiveTravelExpenseById(id);
 
-        if (travelExpense.getTravelStatus()
-                == TravelExpenseStatus.REJECTED) {
-
-            throw new IllegalArgumentException(
-                    "Travel expense is already rejected"
+        if (travelExpense.getTravelStatus() != TravelExpenseStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending travel expense can be rejected"
             );
         }
 
-        travelExpense.setTravelStatus(
-                TravelExpenseStatus.REJECTED
-        );
-
-        TravelExpense rejectedTravelExpense =
-                travelExpenseRepository.save(travelExpense);
-
-        return travelExpenseMapper
-                .toResponseDto(rejectedTravelExpense);
+        travelExpense.setTravelStatus(TravelExpenseStatus.REJECTED);
+        travelExpenseRepository.save(travelExpense);
     }
 
     private TravelExpense findActiveTravelExpenseById(

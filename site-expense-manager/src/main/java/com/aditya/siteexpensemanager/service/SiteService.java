@@ -12,7 +12,9 @@ public interface SiteService {
     SiteResponseDto getSiteById(Long id);
     SiteResponseDto updateSite(Long id, SiteRequestDto requestDto);
     void deleteSiteById(Long id);
+    void hardDeleteById(Long id);
     SiteResponseDto activateSite(Long id);
     SiteResponseDto deactivateSite(Long id);
+
 
 }
