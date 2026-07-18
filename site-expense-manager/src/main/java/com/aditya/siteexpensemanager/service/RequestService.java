@@ -26,6 +26,8 @@ public interface RequestService {
 
     RequestResponseDto deactivateRequest(Long id);
 
+    RequestResponseDto forwardRequest(Long id);
+
     RequestResponseDto approveRequest(
             Long id,
             String approverName

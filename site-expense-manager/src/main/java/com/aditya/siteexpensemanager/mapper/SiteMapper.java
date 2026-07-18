@@ -17,6 +17,7 @@ public class SiteMapper {
         site.setBudget(requestDto.getBudget());
         site.setStartDate(requestDto.getStartDate());
         site.setEndDate(requestDto.getEndDate());
+        site.setTeamSize(requestDto.getTeamSize());
 
         return site;
     }
@@ -32,6 +33,7 @@ public class SiteMapper {
         responseDto.setBudget(site.getBudget());
         responseDto.setStartDate(site.getStartDate());
         responseDto.setEndDate(site.getEndDate());
+        responseDto.setTeamSize(site.getTeamSize());
         responseDto.setActive(site.getActive());
 
         return responseDto;
@@ -44,5 +46,6 @@ public class SiteMapper {
         site.setBudget(requestDto.getBudget());
         site.setStartDate(requestDto.getStartDate());
         site.setEndDate(requestDto.getEndDate());
+        site.setTeamSize(requestDto.getTeamSize());
     }
 }

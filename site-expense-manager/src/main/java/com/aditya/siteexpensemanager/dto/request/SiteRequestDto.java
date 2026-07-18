@@ -46,4 +46,8 @@ public class SiteRequestDto {
 
     @NotNull(message = "End date is required")
     private LocalDate endDate;
+
+    @NotNull(message = "Team size is required")
+    @Positive(message = "Team size must be greater than zero")
+    private Integer teamSize;
 }

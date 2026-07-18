@@ -6,25 +6,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+public class SiteBalanceResponseDto {
 
-public class SiteResponseDto {
-
-
-    private Long id;
+    private Long siteId;
     private String siteName;
-    private String siteCode;
-    private String location;
-    private String projectManager;
-    private BigDecimal budget;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private String supervisorSiteCode;
     private Integer teamSize;
-    private Boolean active;
+    private BigDecimal balance;
+    // true when the team has spent more than what was disbursed (negative balance).
+    private boolean inMinus;
 }

@@ -3,6 +3,7 @@ package com.aditya.siteexpensemanager.controller;
 
 import com.aditya.siteexpensemanager.dto.request.RequestRequestDto;
 import com.aditya.siteexpensemanager.dto.response.RequestResponseDto;
+import com.aditya.siteexpensemanager.security.CustomUserDetails;
 import com.aditya.siteexpensemanager.service.RequestService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +28,10 @@ public class RequestController {
     @Operation(summary = "Create a new request")
     @PostMapping
     public ResponseEntity<RequestResponseDto> createRequest(
-            @Valid @RequestBody RequestRequestDto requestDto) {
+            @Valid @RequestBody RequestRequestDto requestDto,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        requestDto.setRequestedBy(currentUser.getUser().getFullName());
 
         RequestResponseDto responseDto =
                 requestService.createRequest(requestDto);
@@ -34,6 +40,7 @@ public class RequestController {
                 .status(HttpStatus.CREATED)
                 .body(responseDto);
     }
+
 
     @Operation(summary = "Get all requests")
     @GetMapping
@@ -54,11 +61,15 @@ public class RequestController {
         );
     }
 
+
     @Operation(summary = "Update a request")
     @PutMapping("/{id}")
     public ResponseEntity<RequestResponseDto> updateRequest(
             @PathVariable Long id,
-            @Valid @RequestBody RequestRequestDto requestDto) {
+            @Valid @RequestBody RequestRequestDto requestDto,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        requestDto.setRequestedBy(currentUser.getUser().getFullName());
 
         return ResponseEntity.ok(
                 requestService.updateRequest(id, requestDto)
@@ -105,11 +116,21 @@ public class RequestController {
         );
     }
 
+    @Operation(summary = "Forward an Emergency/Material request from Operations to Accounts+Director")
+    @PatchMapping("/{id}/forward")
+    @PreAuthorize("hasAnyAuthority('ROLE_OPERATIONS', 'ROLE_DIRECTOR')")
+    public ResponseEntity<RequestResponseDto> forwardRequest(@PathVariable Long id) {
+        return ResponseEntity.ok(requestService.forwardRequest(id));
+    }
+
     @Operation(summary = "Approve a request")
     @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasAnyAuthority('ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
     public ResponseEntity<RequestResponseDto> approveRequest(
             @PathVariable Long id,
-            @RequestParam String approverName) {
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        String approverName = currentUser.getUser().getFullName();
 
         return ResponseEntity.ok(
                 requestService.approveRequest(id, approverName)
@@ -118,17 +139,16 @@ public class RequestController {
 
     @Operation(summary = "Reject a request")
     @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasAnyAuthority('ROLE_OPERATIONS', 'ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
     public ResponseEntity<RequestResponseDto> rejectRequest(
             @PathVariable Long id,
-            @RequestParam String approverName,
+            @AuthenticationPrincipal CustomUserDetails currentUser,
             @RequestParam String rejectionReason) {
 
+        String approverName = currentUser.getUser().getFullName();
+
         return ResponseEntity.ok(
-                requestService.rejectRequest(
-                        id,
-                        approverName,
-                        rejectionReason
-                )
+                requestService.rejectRequest(id, approverName, rejectionReason)
         );
     }
 }

@@ -62,4 +62,17 @@ public interface LedgerRepository extends JpaRepository<Ledger, Long> {
 
     boolean existsBySite_Id(Long siteId);
 
+    @Query("""
+            select coalesce(sum(
+                case when ledger.entryType = com.aditya.siteexpensemanager.enums.LedgerEntryType.CREDIT
+                     then ledger.amount
+                     else -ledger.amount
+                end
+            ), 0)
+            from Ledger ledger
+            where ledger.site.id = :siteId
+              and ledger.deleted = false
+            """)
+    java.math.BigDecimal getBalanceBySiteId(@Param("siteId") Long siteId);
+
 }

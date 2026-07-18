@@ -43,4 +43,6 @@ public class TravelExpenseResponseDto {
     private TravelExpenseStatus travelStatus;
 
     private String remarks;
+
+    private Boolean billAttached;
 }

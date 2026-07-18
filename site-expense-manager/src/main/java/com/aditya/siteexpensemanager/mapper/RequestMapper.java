@@ -15,6 +15,7 @@ public class RequestMapper {
         request.setRequestedBy(requestDto.getRequestedBy());
         request.setRequestType(requestDto.getRequestType());
         request.setDescription(requestDto.getDescription());
+        request.setAmount(requestDto.getAmount());
 
         return request;
     }
@@ -35,7 +36,9 @@ public class RequestMapper {
         responseDto.setRequestedBy(request.getRequestedBy());
         responseDto.setRequestType(request.getRequestType());
         responseDto.setDescription(request.getDescription());
+        responseDto.setAmount(request.getAmount());
         responseDto.setStatus(request.getStatus());
+        responseDto.setApprovalStage(request.getApprovalStage());
         responseDto.setApproverName(request.getApproverName());
         responseDto.setRejectionReason(request.getRejectionReason());
         responseDto.setRequestDate(request.getRequestDate());
@@ -50,5 +53,6 @@ public class RequestMapper {
         request.setRequestedBy(requestDto.getRequestedBy());
         request.setRequestType(requestDto.getRequestType());
         request.setDescription(requestDto.getDescription());
+        request.setAmount(requestDto.getAmount());
     }
 }

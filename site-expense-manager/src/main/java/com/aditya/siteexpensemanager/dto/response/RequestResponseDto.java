@@ -1,10 +1,12 @@
 package com.aditya.siteexpensemanager.dto.response;
 
+import com.aditya.siteexpensemanager.enums.ApprovalStage;
 import com.aditya.siteexpensemanager.enums.RequestStatus;
 import com.aditya.siteexpensemanager.enums.RequestType;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Getter
@@ -25,7 +27,11 @@ public class RequestResponseDto {
 
     private String description;
 
+    private BigDecimal amount;
+
     private RequestStatus status;
+
+    private ApprovalStage approvalStage;
 
     private String approverName;
 

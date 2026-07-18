@@ -2,6 +2,7 @@ package com.aditya.siteexpensemanager.controller;
 
 import com.aditya.siteexpensemanager.dto.request.LedgerRequestDto;
 import com.aditya.siteexpensemanager.dto.response.LedgerResponseDto;
+import com.aditya.siteexpensemanager.dto.response.SiteBalanceResponseDto;
 import com.aditya.siteexpensemanager.service.LedgerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,6 +62,24 @@ public class LedgerController {
     ) {
         return ResponseEntity.ok(
                 ledgerService.getLedgersBySiteId(siteId)
+        );
+    }
+
+    @Operation(summary = "Get live balance for a single site")
+    @GetMapping("/balance/site/{siteId}")
+    public ResponseEntity<SiteBalanceResponseDto> getSiteBalance(
+            @PathVariable Long siteId
+    ) {
+        return ResponseEntity.ok(
+                ledgerService.getSiteBalance(siteId)
+        );
+    }
+
+    @Operation(summary = "Get live balance for every site, sorted most negative first")
+    @GetMapping("/balance")
+    public ResponseEntity<List<SiteBalanceResponseDto>> getAllSiteBalances() {
+        return ResponseEntity.ok(
+                ledgerService.getAllSiteBalances()
         );
     }
 

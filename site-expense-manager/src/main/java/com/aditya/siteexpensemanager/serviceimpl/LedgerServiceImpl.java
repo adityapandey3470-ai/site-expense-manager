@@ -2,6 +2,7 @@ package com.aditya.siteexpensemanager.serviceimpl;
 
 import com.aditya.siteexpensemanager.dto.request.LedgerRequestDto;
 import com.aditya.siteexpensemanager.dto.response.LedgerResponseDto;
+import com.aditya.siteexpensemanager.dto.response.SiteBalanceResponseDto;
 import com.aditya.siteexpensemanager.entity.Ledger;
 import com.aditya.siteexpensemanager.entity.Request;
 import com.aditya.siteexpensemanager.entity.Site;
@@ -148,6 +149,46 @@ public class LedgerServiceImpl implements LedgerService {
                 );
 
         ledgerRepository.delete(ledger);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SiteBalanceResponseDto getSiteBalance(Long siteId) {
+
+        Site site = siteRepository.findByIdAndDeletedFalse(siteId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Site not found with id: " + siteId
+                        )
+                );
+
+        return toBalanceDto(site);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SiteBalanceResponseDto> getAllSiteBalances() {
+
+        return siteRepository.findAllByDeletedFalse()
+                .stream()
+                .map(this::toBalanceDto)
+                // Sites furthest in the negative appear first, matching the payout priority list.
+                .sorted((a, b) -> a.getBalance().compareTo(b.getBalance()))
+                .toList();
+    }
+
+    private SiteBalanceResponseDto toBalanceDto(Site site) {
+
+        BigDecimal balance = ledgerRepository.getBalanceBySiteId(site.getId());
+
+        return new SiteBalanceResponseDto(
+                site.getId(),
+                site.getSiteName(),
+                site.getSiteCode(),
+                site.getTeamSize(),
+                balance,
+                balance.signum() < 0
+        );
     }
 
     private Ledger getValidLedger(Long ledgerId) {

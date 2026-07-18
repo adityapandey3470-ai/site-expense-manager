@@ -1,6 +1,7 @@
 package com.aditya.siteexpensemanager.dto.request;
 
 import com.aditya.siteexpensemanager.enums.TravelMode;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -50,4 +51,7 @@ public class TravelExpenseRequestDto {
     private String travelPurpose;
 
     private String remarks;
+
+    @AssertTrue(message = "Cab/travel invoice must be attached before submitting")
+    private boolean billAttached;
 }

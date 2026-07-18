@@ -2,9 +2,12 @@ package com.aditya.siteexpensemanager.serviceimpl;
 
 import com.aditya.siteexpensemanager.dto.request.RequestRequestDto;
 import com.aditya.siteexpensemanager.dto.response.RequestResponseDto;
+import com.aditya.siteexpensemanager.entity.Ledger;
 import com.aditya.siteexpensemanager.entity.Request;
 import com.aditya.siteexpensemanager.entity.Site;
 import com.aditya.siteexpensemanager.entity.TravelExpense;
+import com.aditya.siteexpensemanager.enums.ApprovalStage;
+import com.aditya.siteexpensemanager.enums.LedgerEntryType;
 import com.aditya.siteexpensemanager.enums.LedgerSourceType;
 import com.aditya.siteexpensemanager.enums.RequestStatus;
 import com.aditya.siteexpensemanager.enums.RequestType;
@@ -21,6 +24,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -108,6 +112,8 @@ public class RequestServiceImpl implements RequestService {
             }
         }
 
+        validateAmountForRequestType(requestDto.getRequestType(), requestDto.getAmount());
+
         Request request = requestMapper.toEntity(requestDto);
 
         request.setSite(site);
@@ -117,10 +123,26 @@ public class RequestServiceImpl implements RequestService {
         request.setRequestDate(LocalDate.now());
         request.setActive(true);
         request.setDeleted(false);
+        request.setApprovalStage(requiresTwoStepApproval(requestDto.getRequestType())
+                ? ApprovalStage.PENDING_OPERATIONS
+                : null);
 
         Request savedRequest = requestRepository.save(request);
 
         return requestMapper.toResponseDto(savedRequest);
+    }
+
+    private boolean requiresTwoStepApproval(RequestType requestType) {
+        return requestType == RequestType.EMERGENCY || requestType == RequestType.MATERIAL;
+    }
+
+    private void validateAmountForRequestType(RequestType requestType, BigDecimal amount) {
+
+        if (requiresTwoStepApproval(requestType) && amount == null) {
+            throw new IllegalArgumentException(
+                    "Amount is required for " + requestType + " requests"
+            );
+        }
     }
 
     @Override
@@ -226,6 +248,8 @@ public class RequestServiceImpl implements RequestService {
             }
         }
 
+        validateAmountForRequestType(requestDto.getRequestType(), requestDto.getAmount());
+
         requestMapper.updateEntity(
                 requestDto,
                 existingRequest
@@ -233,6 +257,9 @@ public class RequestServiceImpl implements RequestService {
 
         existingRequest.setSite(site);
         existingRequest.setTravelExpense(travelExpense);
+        existingRequest.setApprovalStage(requiresTwoStepApproval(requestDto.getRequestType())
+                ? ApprovalStage.PENDING_OPERATIONS
+                : null);
 
         Request updatedRequest =
                 requestRepository.save(existingRequest);
@@ -320,6 +347,33 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     @Transactional
+    public RequestResponseDto forwardRequest(Long id) {
+
+        Request request = getLockedExistingRequest(id);
+
+        if (!requiresTwoStepApproval(request.getRequestType())) {
+            throw new IllegalStateException(
+                    request.getRequestType() + " requests do not use the forward step; approve directly"
+            );
+        }
+
+        checkPendingStatus(request);
+
+        if (request.getApprovalStage() != ApprovalStage.PENDING_OPERATIONS) {
+            throw new IllegalStateException(
+                    "Request has already been forwarded to Accounts/Director"
+            );
+        }
+
+        request.setApprovalStage(ApprovalStage.PENDING_ACCOUNTS_DIRECTOR);
+
+        Request updatedRequest = requestRepository.save(request);
+
+        return requestMapper.toResponseDto(updatedRequest);
+    }
+
+    @Override
+    @Transactional
     public RequestResponseDto approveRequest(
             Long id,
             String approverName
@@ -335,11 +389,21 @@ public class RequestServiceImpl implements RequestService {
 
         checkPendingStatus(request);
 
+        if (requiresTwoStepApproval(request.getRequestType())
+                && request.getApprovalStage() != ApprovalStage.PENDING_ACCOUNTS_DIRECTOR) {
+            throw new IllegalStateException(
+                    "Request must be forwarded to Accounts/Director before final approval"
+            );
+        }
+
         request.setStatus(RequestStatus.APPROVED);
         request.setApproverName(approverName);
         request.setActionDate(LocalDate.now());
         request.setRejectionReason(null);
 
+        if (requiresTwoStepApproval(request.getRequestType())) {
+            request.setApprovalStage(ApprovalStage.DONE);
+        }
 
         if (request.getTravelExpense() != null) {
             travelExpenseService.markAsApproved(
@@ -350,7 +414,28 @@ public class RequestServiceImpl implements RequestService {
         Request updatedRequest =
                 requestRepository.save(request);
 
+        // Emergency / Material requests post straight to the ledger once fully approved.
+        if (requiresTwoStepApproval(request.getRequestType())) {
+            postApprovedRequestToLedger(updatedRequest);
+        }
+
         return requestMapper.toResponseDto(updatedRequest);
+    }
+
+    private void postApprovedRequestToLedger(Request request) {
+
+        Ledger ledger = Ledger.builder()
+                .site(request.getSite())
+                .entryType(LedgerEntryType.DEBIT)
+                .sourceType(LedgerSourceType.REQUEST)
+                .sourceId(request.getId())
+                .amount(request.getAmount())
+                .description(request.getRequestType() + ": " + request.getDescription())
+                .transactionDate(LocalDate.now())
+                .deleted(false)
+                .build();
+
+        ledgerRepository.save(ledger);
     }
 
     @Override

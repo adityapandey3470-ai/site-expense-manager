@@ -26,6 +26,7 @@ public class TravelExpenseMapper {
         travelExpense.setTravelCost(requestDto.getTravelCost());
         travelExpense.setTravelPurpose(requestDto.getTravelPurpose());
         travelExpense.setRemarks(requestDto.getRemarks());
+        travelExpense.setBillAttached(requestDto.isBillAttached());
 
         return travelExpense;
     }
@@ -88,6 +89,10 @@ public class TravelExpenseMapper {
                 travelExpense.getRemarks()
         );
 
+        responseDto.setBillAttached(
+                travelExpense.getBillAttached()
+        );
+
         return responseDto;
     }
 
@@ -107,5 +112,6 @@ public class TravelExpenseMapper {
         travelExpense.setTravelCost(requestDto.getTravelCost());
         travelExpense.setTravelPurpose(requestDto.getTravelPurpose());
         travelExpense.setRemarks(requestDto.getRemarks());
+        travelExpense.setBillAttached(requestDto.isBillAttached());
     }
 }

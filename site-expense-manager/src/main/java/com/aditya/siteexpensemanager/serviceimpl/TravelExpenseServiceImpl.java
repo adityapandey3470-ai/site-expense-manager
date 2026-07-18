@@ -2,8 +2,10 @@ package com.aditya.siteexpensemanager.serviceimpl;
 
 import com.aditya.siteexpensemanager.dto.request.TravelExpenseRequestDto;
 import com.aditya.siteexpensemanager.dto.response.TravelExpenseResponseDto;
+import com.aditya.siteexpensemanager.entity.Ledger;
 import com.aditya.siteexpensemanager.entity.Site;
 import com.aditya.siteexpensemanager.entity.TravelExpense;
+import com.aditya.siteexpensemanager.enums.LedgerEntryType;
 import com.aditya.siteexpensemanager.enums.LedgerSourceType;
 import com.aditya.siteexpensemanager.enums.TravelExpenseStatus;
 import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
@@ -15,7 +17,9 @@ import com.aditya.siteexpensemanager.repository.TravelExpenseRepository;
 import com.aditya.siteexpensemanager.service.TravelExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -206,6 +210,7 @@ public class TravelExpenseServiceImpl
 
 
     @Override
+    @Transactional
     public void markAsApproved(Long id) {
 
         TravelExpense travelExpense = findActiveTravelExpenseById(id);
@@ -216,8 +221,38 @@ public class TravelExpenseServiceImpl
             );
         }
 
+        if (!Boolean.TRUE.equals(travelExpense.getBillAttached())) {
+            throw new IllegalStateException(
+                    "Travel expense cannot be approved without an attached invoice/bill"
+            );
+        }
+
         travelExpense.setTravelStatus(TravelExpenseStatus.APPROVED);
         travelExpenseRepository.save(travelExpense);
+
+        postApprovedTravelExpenseToLedger(travelExpense);
+    }
+
+    private void postApprovedTravelExpenseToLedger(TravelExpense travelExpense) {
+
+        if (ledgerRepository.existsBySourceTypeAndSourceIdAndDeletedFalse(
+                LedgerSourceType.TRAVEL_EXPENSE, travelExpense.getId())) {
+            return;
+        }
+
+        Ledger ledger = Ledger.builder()
+                .site(travelExpense.getSite())
+                .entryType(LedgerEntryType.DEBIT)
+                .sourceType(LedgerSourceType.TRAVEL_EXPENSE)
+                .sourceId(travelExpense.getId())
+                .amount(travelExpense.getTravelCost())
+                .description("Travel: " + travelExpense.getFromLocation()
+                        + " -> " + travelExpense.getToLocation())
+                .transactionDate(travelExpense.getTravelDate())
+                .deleted(false)
+                .build();
+
+        ledgerRepository.save(ledger);
     }
 
     @Override
