@@ -23,6 +23,8 @@ import com.aditya.siteexpensemanager.service.TravelExpenseService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -153,6 +155,22 @@ public class RequestServiceImpl implements RequestService {
                 .stream()
                 .map(requestMapper::toResponseDto)
                 .toList();
+    }
+
+    @Override
+    public Page<RequestResponseDto> getAllRequests(Pageable pageable) {
+
+        return requestRepository
+                .findAllByDeletedFalseAndSiteDeletedFalse(pageable)
+                .map(requestMapper::toResponseDto);
+    }
+
+    @Override
+    public Page<RequestResponseDto> searchRequests(String search, RequestStatus status, Pageable pageable) {
+
+        return requestRepository
+                .searchRequests(search, status, pageable)
+                .map(requestMapper::toResponseDto);
     }
 
     @Override

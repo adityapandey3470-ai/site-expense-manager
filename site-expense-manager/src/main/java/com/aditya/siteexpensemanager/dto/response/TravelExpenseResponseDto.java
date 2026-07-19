@@ -45,4 +45,6 @@ public class TravelExpenseResponseDto {
     private String remarks;
 
     private Boolean billAttached;
+
+    private String billUrl;
 }

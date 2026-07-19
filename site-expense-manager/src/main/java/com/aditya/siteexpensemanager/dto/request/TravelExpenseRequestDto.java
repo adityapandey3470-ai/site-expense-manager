@@ -54,4 +54,6 @@ public class TravelExpenseRequestDto {
 
     @AssertTrue(message = "Cab/travel invoice must be attached before submitting")
     private boolean billAttached;
+
+    private String billUrl;
 }

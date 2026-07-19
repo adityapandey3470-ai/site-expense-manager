@@ -5,11 +5,17 @@ import com.aditya.siteexpensemanager.dto.response.RequestResponseDto;
 
 import java.util.List;
 
+import com.aditya.siteexpensemanager.enums.RequestStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public interface RequestService {
 
     RequestResponseDto createRequest(RequestRequestDto requestDto);
 
     List<RequestResponseDto> getAllRequests();
+    Page<RequestResponseDto> getAllRequests(Pageable pageable);
+    Page<RequestResponseDto> searchRequests(String search, RequestStatus status, Pageable pageable);
 
     RequestResponseDto getRequestById(Long id);
 

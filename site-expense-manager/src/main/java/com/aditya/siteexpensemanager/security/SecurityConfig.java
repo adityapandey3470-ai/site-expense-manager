@@ -87,6 +87,9 @@ public class SecurityConfig {
                         .requestMatchers("/payouts/**").hasAnyAuthority(
                                 "ROLE_ACCOUNTS", "ROLE_DIRECTOR")
 
+                        // File uploads — any authenticated user can upload a bill
+                        .requestMatchers("/files/**").authenticated()
+
                         // Sites — only Operations/Director manage sites
                         .requestMatchers(HttpMethod.GET, "/sites/**").hasAnyAuthority(
                                 "ROLE_SUPERVISOR", "ROLE_OPERATIONS", "ROLE_ACCOUNTS", "ROLE_DIRECTOR")

@@ -66,6 +66,9 @@ public class TravelExpense {
     @Column(name = "bill_attached", nullable = false)
     private Boolean billAttached = false;
 
+    @Column(name = "bill_url", length = 500)
+    private String billUrl;
+
     @Column(name = "deleted", nullable = false)
     private Boolean deleted = false;
 }
