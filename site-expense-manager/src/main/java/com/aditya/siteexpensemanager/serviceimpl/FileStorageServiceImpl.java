@@ -24,7 +24,9 @@ public class FileStorageServiceImpl implements FileStorageService {
                 "cloud_name", cloudName,
                 "api_key", apiKey,
                 "api_secret", apiSecret,
-                "secure", true
+                "secure", true,
+                "timeout", 15000,
+                "connectTimeout", 10000
         ));
     }
 

@@ -91,4 +91,13 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body("You do not have permission to perform this action");
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleUnexpectedException(Exception ex) {
+        ex.printStackTrace();
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Something went wrong. Please try again later.");
+    }
 }
