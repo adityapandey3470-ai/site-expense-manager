@@ -64,4 +64,6 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
     boolean existsByTravelExpense_Id(Long travelExpenseId);
     boolean existsByTravelExpense_IdAndDeletedFalse(Long travelExpenseId);
     boolean existsBySite_Id(Long siteId);
+
+    long countByStatusAndDeletedFalseAndSite_DeletedFalse(RequestStatus status);
 }

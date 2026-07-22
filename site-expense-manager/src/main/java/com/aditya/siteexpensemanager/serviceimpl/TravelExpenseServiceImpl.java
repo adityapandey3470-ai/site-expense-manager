@@ -79,11 +79,24 @@ public class TravelExpenseServiceImpl
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TravelExpenseResponseDto>
     getAllTravelExpenses() {
 
         return travelExpenseRepository
                 .findAllByDeletedFalseAndSiteDeletedFalse()
+                .stream()
+                .map(travelExpenseMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TravelExpenseResponseDto>
+    getTravelExpensesBySiteId(Long siteId) {
+
+        return travelExpenseRepository
+                .findAllBySite_IdAndDeletedFalse(siteId)
                 .stream()
                 .map(travelExpenseMapper::toResponseDto)
                 .toList();

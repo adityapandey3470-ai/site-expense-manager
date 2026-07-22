@@ -89,6 +89,7 @@ public class SecurityConfig {
 
                         // File uploads — any authenticated user can upload a bill
                         .requestMatchers("/files/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                         // Sites — only Operations/Director manage sites
                         .requestMatchers(HttpMethod.GET, "/sites/**").hasAnyAuthority(

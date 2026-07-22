@@ -1,6 +1,7 @@
 package com.aditya.siteexpensemanager.repository;
 
 import com.aditya.siteexpensemanager.entity.TravelExpense;
+import com.aditya.siteexpensemanager.enums.TravelExpenseStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -33,4 +34,5 @@ public interface TravelExpenseRepository
 
     List<TravelExpense> findAllBySite_IdAndDeletedFalse(Long siteId);
     boolean existsBySite_Id(Long siteId);
+    long countByTravelStatusAndDeletedFalseAndSite_DeletedFalse(TravelExpenseStatus travelStatus);
 }

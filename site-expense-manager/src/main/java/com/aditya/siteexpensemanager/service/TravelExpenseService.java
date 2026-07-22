@@ -26,4 +26,5 @@ public interface TravelExpenseService {
 
     void markAsApproved(Long id);
     void markAsRejected(Long id);
+    List<TravelExpenseResponseDto> getTravelExpensesBySiteId(Long siteId);
 }

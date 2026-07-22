@@ -62,6 +62,43 @@ public class TravelExpenseController {
         );
     }
 
+    @Operation(summary = "Get travel expenses by site ID")
+    @GetMapping("/site/{siteId}")
+    public ResponseEntity<List<TravelExpenseResponseDto>>
+    getTravelExpensesBySiteId(
+            @PathVariable Long siteId
+    ) {
+
+        return ResponseEntity.ok(
+                travelExpenseService
+                        .getTravelExpensesBySiteId(siteId)
+        );
+    }
+
+    @Operation(summary = "Approve a travel expense")
+    @PatchMapping("/{id}/approve")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyAuthority('ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
+    public ResponseEntity<String> approveTravelExpense(
+            @PathVariable Long id
+    ) {
+
+        travelExpenseService.markAsApproved(id);
+
+        return ResponseEntity.ok("Travel expense approved successfully");
+    }
+
+    @Operation(summary = "Reject a travel expense")
+    @PatchMapping("/{id}/reject")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyAuthority('ROLE_OPERATIONS', 'ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
+    public ResponseEntity<String> rejectTravelExpense(
+            @PathVariable Long id
+    ) {
+
+        travelExpenseService.markAsRejected(id);
+
+        return ResponseEntity.ok("Travel expense rejected successfully");
+    }
+
     @Operation(summary = "Update travel expense")
     @PutMapping("/{id}")
     public ResponseEntity<TravelExpenseResponseDto>
@@ -111,5 +148,6 @@ public class TravelExpenseController {
                 "Travel expense permanently deleted successfully"
         );
     }
+
 
   }
