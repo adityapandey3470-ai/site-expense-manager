@@ -66,4 +66,5 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
     boolean existsBySite_Id(Long siteId);
 
     long countByStatusAndDeletedFalseAndSite_DeletedFalse(RequestStatus status);
+    List<Request> findAllBySite_IdInAndDeletedFalse(List<Long> siteIds);
 }

@@ -19,6 +19,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
+    @Transactional
     public UserResponseDto register(RegisterRequestDto requestDto) {
 
             if (requestDto.getRole() != Role.SUPERVISOR) {
@@ -143,6 +145,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public UserResponseDto registerPrivileged(RegisterRequestDto requestDto) {
 
         if (userRepository.existsByUsername(requestDto.getUsername())) {

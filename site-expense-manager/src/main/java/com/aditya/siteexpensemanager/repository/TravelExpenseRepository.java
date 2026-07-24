@@ -35,4 +35,5 @@ public interface TravelExpenseRepository
     List<TravelExpense> findAllBySite_IdAndDeletedFalse(Long siteId);
     boolean existsBySite_Id(Long siteId);
     long countByTravelStatusAndDeletedFalseAndSite_DeletedFalse(TravelExpenseStatus travelStatus);
+    List<TravelExpense> findAllBySite_IdInAndDeletedFalse(List<Long> siteIds);
 }

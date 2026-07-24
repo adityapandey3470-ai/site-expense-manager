@@ -129,6 +129,7 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
+    @Transactional
     public void softDeleteLedger(Long ledgerId) {
 
         Ledger ledger = getValidLedger(ledgerId);
@@ -139,6 +140,7 @@ public class LedgerServiceImpl implements LedgerService {
     }
 
     @Override
+    @Transactional
     public void deleteLedger(Long ledgerId) {
 
         Ledger ledger = ledgerRepository.findById(ledgerId)

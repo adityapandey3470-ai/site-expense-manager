@@ -1,5 +1,6 @@
 package com.aditya.siteexpensemanager.controller;
 
+import com.aditya.siteexpensemanager.enums.ReportType;
 import com.aditya.siteexpensemanager.service.ReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/reports")
 @Tag(name = "Report APIs", description = "Export data as downloadable reports")
@@ -21,18 +24,15 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    @Operation(summary = "Export ledger entries as CSV (all sites, or one site via siteId)")
-    @GetMapping("/ledger/export")
+    @Operation(summary = "Export a report as CSV — type = LEDGER | TRAVEL_EXPENSE | REQUEST")
+    @GetMapping("/export/csv")
     @PreAuthorize("hasAnyAuthority('ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
-    public ResponseEntity<byte[]> exportLedgerCsv(
-            @RequestParam(required = false) Long siteId
+    public ResponseEntity<byte[]> exportCsv(
+            @RequestParam ReportType type,
+            @RequestParam(required = false) List<Long> siteIds
     ) {
-
-        byte[] csv = reportService.exportLedgerCsv(siteId);
-
-        String filename = (siteId != null)
-                ? "ledger-site-" + siteId + ".csv"
-                : "ledger-all-sites.csv";
+        byte[] csv = reportService.exportCsv(type, siteIds);
+        String filename = type.name().toLowerCase() + "-export.csv";
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
@@ -40,18 +40,15 @@ public class ReportController {
                 .body(csv);
     }
 
-    @Operation(summary = "Export ledger entries as PDF (all sites, or one site via siteId)")
-    @GetMapping("/ledger/export/pdf")
+    @Operation(summary = "Export a report as PDF — type = LEDGER | TRAVEL_EXPENSE | REQUEST")
+    @GetMapping("/export/pdf")
     @PreAuthorize("hasAnyAuthority('ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
-    public ResponseEntity<byte[]> exportLedgerPdf(
-            @RequestParam(required = false) Long siteId
+    public ResponseEntity<byte[]> exportPdf(
+            @RequestParam ReportType type,
+            @RequestParam(required = false) List<Long> siteIds
     ) {
-
-        byte[] pdf = reportService.exportLedgerPdf(siteId);
-
-        String filename = (siteId != null)
-                ? "ledger-site-" + siteId + ".pdf"
-                : "ledger-all-sites.pdf";
+        byte[] pdf = reportService.exportPdf(type, siteIds);
+        String filename = type.name().toLowerCase() + "-export.pdf";
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")

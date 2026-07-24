@@ -1,7 +1,12 @@
 package com.aditya.siteexpensemanager.service;
 
+import com.aditya.siteexpensemanager.enums.ReportType;
+
+import java.util.List;
+
 public interface ReportService {
 
-    byte[] exportLedgerCsv(Long siteId);
-    byte[] exportLedgerPdf(Long siteId);
+    byte[] exportCsv(ReportType type, List<Long> siteIds);
+
+    byte[] exportPdf(ReportType type, List<Long> siteIds);
 }

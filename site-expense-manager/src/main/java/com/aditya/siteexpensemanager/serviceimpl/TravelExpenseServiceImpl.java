@@ -103,6 +103,7 @@ public class TravelExpenseServiceImpl
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TravelExpenseResponseDto
     getTravelExpenseById(Long id) {
 
@@ -114,6 +115,7 @@ public class TravelExpenseServiceImpl
     }
 
     @Override
+    @Transactional
     public TravelExpenseResponseDto
     updateTravelExpenseById(
             Long id,
@@ -166,6 +168,7 @@ public class TravelExpenseServiceImpl
     }
 
     @Override
+    @Transactional
     public void softDeleteTravelExpenseById(Long id) {
 
         TravelExpense travelExpense =
@@ -192,6 +195,7 @@ public class TravelExpenseServiceImpl
     }
 
     @Override
+    @Transactional
     public void hardDeleteTravelExpenseById(Long id) {
 
         TravelExpense travelExpense =
@@ -269,6 +273,7 @@ public class TravelExpenseServiceImpl
     }
 
     @Override
+    @Transactional
     public void markAsRejected(Long id) {
 
         TravelExpense travelExpense = findActiveTravelExpenseById(id);

@@ -11,6 +11,7 @@ import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.repository.TravelExpenseRepository;
 import com.aditya.siteexpensemanager.service.SiteService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -66,6 +67,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
         @Override
+        @Transactional
         public SiteResponseDto createSite (SiteRequestDto requestDto){
             validateSiteDates(requestDto);
             validateSiteCode(requestDto.getSiteCode());
@@ -75,6 +77,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         @Override
+        @Transactional
         public List<SiteResponseDto> getAllSites() {
         var sites = siteRepository.findAllByDeletedFalse();
         return sites.stream()
@@ -83,6 +86,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         @Override
+        @Transactional
         public SiteResponseDto getSiteById(Long id){
         var site = siteRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
@@ -90,6 +94,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         @Override
+        @Transactional
         public SiteResponseDto updateSite(Long id, SiteRequestDto requestDto){
         var site = siteRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
@@ -112,6 +117,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         @Override
+        @Transactional
         public void deleteSiteById(Long id){
         var site = siteRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
@@ -131,6 +137,7 @@ public class SiteServiceImpl implements SiteService {
 
 
         @Override
+        @Transactional
         public void hardDeleteById(Long id){
         var site = siteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
@@ -153,6 +160,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         @Override
+        @Transactional
         public SiteResponseDto activateSite(Long id){
         Site site = siteRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));
@@ -164,6 +172,7 @@ public class SiteServiceImpl implements SiteService {
 
 
         @Override
+        @Transactional
         public SiteResponseDto deactivateSite(Long id){
         Site site = siteRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Site not found with id " + id));

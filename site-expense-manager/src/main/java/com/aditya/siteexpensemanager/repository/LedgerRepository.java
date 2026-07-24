@@ -33,6 +33,7 @@ public interface LedgerRepository extends JpaRepository<Ledger, Long> {
             Long sourceId,
             Long ledgerId
     );
+    List<Ledger> findAllBySite_IdInAndDeletedFalse(List<Long> siteIds);
 
     @Query("""
             select count(ledger) > 0
