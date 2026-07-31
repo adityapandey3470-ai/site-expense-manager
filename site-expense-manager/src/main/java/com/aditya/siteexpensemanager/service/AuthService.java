@@ -1,5 +1,6 @@
 package com.aditya.siteexpensemanager.service;
 
+import com.aditya.siteexpensemanager.dto.request.ChangePasswordRequestDto;
 import com.aditya.siteexpensemanager.dto.request.LoginRequestDto;
 import com.aditya.siteexpensemanager.dto.request.RegisterRequestDto;
 import com.aditya.siteexpensemanager.dto.response.JwtResponseDto;
@@ -12,4 +13,7 @@ public interface AuthService {
     JwtResponseDto login(LoginRequestDto requestDto);
 
     UserResponseDto registerPrivileged(RegisterRequestDto requestDto);
+
+    void changePassword(Long userId, ChangePasswordRequestDto requestDto);
+
 }

@@ -1,5 +1,6 @@
 package com.aditya.siteexpensemanager.serviceimpl;
 
+import com.aditya.siteexpensemanager.dto.request.ChangePasswordRequestDto;
 import com.aditya.siteexpensemanager.dto.request.LoginRequestDto;
 import com.aditya.siteexpensemanager.dto.request.RegisterRequestDto;
 import com.aditya.siteexpensemanager.dto.response.JwtResponseDto;
@@ -14,6 +15,8 @@ import com.aditya.siteexpensemanager.security.CustomUserDetails;
 import com.aditya.siteexpensemanager.security.JwtUtil;
 import com.aditya.siteexpensemanager.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -24,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     private final UserRepository userRepository;
     private final SiteRepository siteRepository;
@@ -38,19 +43,37 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public UserResponseDto register(RegisterRequestDto requestDto) {
 
+            if (userRepository.count() == 0) {
+
+                if (requestDto.getRole() == Role.SUPERVISOR && requestDto.getSiteId() == null) {
+                    throw new IllegalArgumentException("Site id is required for SUPERVISOR role");
+                }
+
+                Site bootstrapSite = null;
+                if (requestDto.getRole() == Role.SUPERVISOR) {
+                    bootstrapSite = siteRepository.findByIdAndDeletedFalse(requestDto.getSiteId())
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "Site not found with id: " + requestDto.getSiteId()));
+                }
+
+                User firstUser = new User();
+                firstUser.setFullName(requestDto.getFullName());
+                firstUser.setUsername(requestDto.getUsername());
+                firstUser.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+                firstUser.setRole(requestDto.getRole());
+                firstUser.setSite(bootstrapSite);
+                firstUser.setActive(true);
+                firstUser.setDeleted(false);
+
+                return toResponseDto(userRepository.save(firstUser));
+            }
+
             if (requestDto.getRole() != Role.SUPERVISOR) {
                 throw new IllegalArgumentException(
                         "Self-registration is only allowed for SUPERVISOR. "
                                 + "Contact a DIRECTOR to create accounts for other roles."
                 );
             }
-
-            if (userRepository.existsByUsername(requestDto.getUsername())) {
-                throw new IllegalStateException(
-                        "Username already taken: " + requestDto.getUsername()
-                );
-            }
-
 
         if (userRepository.existsByUsername(requestDto.getUsername())) {
             throw new IllegalStateException(
@@ -106,6 +129,8 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (Exception ex) {
+            logger.warn("Login failed for username '{}': {} - {}",
+                    requestDto.getUsername(), ex.getClass().getSimpleName(), ex.getMessage());
             throw new BadCredentialsException("Invalid username or password");
         }
 
@@ -125,6 +150,20 @@ public class AuthServiceImpl implements AuthService {
         return new JwtResponseDto(
                 token, user.getId(), user.getUsername(), user.getFullName(), user.getRole(), siteId
         );
+    }
+
+    @Override
+    public void changePassword(Long userId, ChangePasswordRequestDto requestDto) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(requestDto.getOldPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Current password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(requestDto.getNewPassword()));
+        userRepository.save(user);
     }
 
     private UserResponseDto toResponseDto(User user) {
