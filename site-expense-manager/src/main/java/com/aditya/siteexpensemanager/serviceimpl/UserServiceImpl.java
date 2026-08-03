@@ -34,6 +34,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void resetPassword(Long userId, ResetPasswordRequestDto requestDto) {
 
         User user = userRepository.findById(userId)
@@ -44,6 +45,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserResponseDto toggleActive(Long targetUserId, Long actingUserId, String confirmPassword) {
 
         User target = userRepository.findById(targetUserId)
