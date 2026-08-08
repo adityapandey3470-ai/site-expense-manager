@@ -11,7 +11,6 @@ import com.aditya.siteexpensemanager.enums.Role;
 import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.repository.UserRepository;
-import com.aditya.siteexpensemanager.security.CustomUserDetails;
 import com.aditya.siteexpensemanager.security.JwtUtil;
 import com.aditya.siteexpensemanager.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +22,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -119,23 +120,60 @@ public class AuthServiceImpl implements AuthService {
 
 
 
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private static final int LOCKOUT_MINUTES = 15;
+
+
     @Override
+    @Transactional
     public JwtResponseDto login(LoginRequestDto requestDto) {
+
+        String username = requestDto.getUsername().trim();
+
+        User user = userRepository.findByUsernameAndDeletedFalse(username)
+                .orElse(null);
+
+        if (user != null && user.getLockedUntil() != null
+                && user.getLockedUntil().isAfter(LocalDateTime.now())) {
+
+            long minutesLeft = java.time.Duration.between(
+                    LocalDateTime.now(), user.getLockedUntil()).toMinutes() + 1;
+
+            throw new IllegalStateException(
+                    "Too many failed attempts. This account is locked for "
+                            + minutesLeft + " more minute(s). Contact your Director if you need help."
+            );
+        }
 
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            requestDto.getUsername(), requestDto.getPassword()
+                            username, requestDto.getPassword()
                     )
             );
         } catch (Exception ex) {
+
             logger.warn("Login failed for username '{}': {} - {}",
-                    requestDto.getUsername(), ex.getClass().getSimpleName(), ex.getMessage());
+                    username, ex.getClass().getSimpleName(), ex.getMessage());
+
+            if (user != null) {
+                int attempts = (user.getFailedLoginAttempts() == null ? 0 : user.getFailedLoginAttempts()) + 1;
+                user.setFailedLoginAttempts(attempts);
+
+                if (attempts >= MAX_FAILED_ATTEMPTS) {
+                    user.setLockedUntil(LocalDateTime.now().plusMinutes(LOCKOUT_MINUTES));
+                }
+                userRepository.save(user);
+            }
+
             throw new BadCredentialsException("Invalid username or password");
         }
 
-        User user = userRepository.findByUsernameAndDeletedFalse(requestDto.getUsername())
-                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
+        if (user.getFailedLoginAttempts() != null && user.getFailedLoginAttempts() > 0) {
+            user.setFailedLoginAttempts(0);
+            user.setLockedUntil(null);
+            userRepository.save(user);
+        }
 
         if (!user.getActive()) {
             throw new IllegalStateException("User account is deactivated");
@@ -152,6 +190,8 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
+
+    @Transactional
     @Override
     public void changePassword(Long userId, ChangePasswordRequestDto requestDto) {
 

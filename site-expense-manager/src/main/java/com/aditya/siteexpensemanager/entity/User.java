@@ -42,4 +42,10 @@ public class User {
 
     @Column(nullable = false)
     private Boolean deleted = false;
+
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts = 0;
+
+    @Column(name = "locked_until")
+    private java.time.LocalDateTime lockedUntil;
 }
