@@ -59,12 +59,20 @@ public class PayoutServiceImpl implements PayoutService {
 
         Site site = getActiveSite(siteId);
 
+        boolean alreadyPaidToday = ledgerRepository.existsBySite_IdAndSourceTypeAndTransactionDate(
+                siteId, LedgerSourceType.PAYOUT, LocalDate.now()
+        );
+
+        if (alreadyPaidToday) {
+            throw new IllegalStateException(
+                    "This site has already been marked paid today. Try again on the next payout cycle."
+            );
+        }
+
         BigDecimal amountDue = calculateAmountDue(site);
 
         if (amountDue.signum() <= 0) {
-            throw new IllegalStateException(
-                    "Nothing due for this site right now"
-            );
+            throw new IllegalStateException("Nothing due for this site right now");
         }
 
         Ledger ledger = Ledger.builder()
@@ -103,16 +111,22 @@ public class PayoutServiceImpl implements PayoutService {
 
     private PayoutDueResponseDto toPayoutDueDto(Site site) {
 
-        BigDecimal balance = ledgerRepository.getBalanceBySiteId(site.getId());
-        BigDecimal amountDue = calculateAmountDue(site, balance);
+        BigDecimal amountDue = calculateAmountDue(site);
+        BigDecimal currentBalance = ledgerRepository.getBalanceBySiteId(site.getId());
 
-        return new PayoutDueResponseDto(
-                site.getId(),
-                site.getSiteName(),
-                site.getTeamSize(),
-                balance,
-                amountDue
+        boolean alreadyPaidToday = ledgerRepository.existsBySite_IdAndSourceTypeAndTransactionDate(
+                site.getId(), LedgerSourceType.PAYOUT, LocalDate.now()
         );
+
+        PayoutDueResponseDto dto = new PayoutDueResponseDto();
+        dto.setSiteId(site.getId());
+        dto.setSiteName(site.getSiteName());
+        dto.setTeamSize(site.getTeamSize());
+        dto.setAmountDue(amountDue);
+        dto.setCurrentBalance(currentBalance);
+        dto.setAlreadyPaidToday(alreadyPaidToday);
+
+        return dto;
     }
 
     private BigDecimal calculateAmountDue(Site site) {
