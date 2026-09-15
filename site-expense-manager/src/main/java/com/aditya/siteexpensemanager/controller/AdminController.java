@@ -61,4 +61,14 @@ public class AdminController {
                 userService.toggleActive(id, currentUser.getUser().getId(), confirmPassword)
         );
     }
+
+    @Operation(summary = "Delete a user (DIRECTOR only)")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUser(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+        userService.deleteUser(id, currentUser.getUser().getId());
+        return ResponseEntity.ok("User deleted successfully");
+    }
 }

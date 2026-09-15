@@ -17,8 +17,7 @@ public class PayoutDueResponseDto {
     private String siteName;
     private Integer teamSize;
     private BigDecimal currentBalance;
-    // Amount recommended for the next Mon/Wed/Fri disbursement:
-    // 2 days of food advance for the team, plus covering any negative balance.
     private BigDecimal amountDue;
     private Boolean alreadyPaidToday;
+    private Boolean isPayoutDayToday;
 }

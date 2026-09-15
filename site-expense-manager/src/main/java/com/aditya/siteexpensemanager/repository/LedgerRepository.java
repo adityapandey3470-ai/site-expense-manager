@@ -97,4 +97,5 @@ public interface LedgerRepository extends JpaRepository<Ledger, Long> {
     boolean existsBySite_IdAndSourceTypeAndTransactionDate(
             Long siteId, LedgerSourceType sourceType, java.time.LocalDate transactionDate);
 
+
 }

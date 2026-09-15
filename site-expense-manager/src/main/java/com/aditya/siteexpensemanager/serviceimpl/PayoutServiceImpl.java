@@ -11,14 +11,16 @@ import com.aditya.siteexpensemanager.mapper.LedgerMapper;
 import com.aditya.siteexpensemanager.repository.LedgerRepository;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.service.PayoutService;
+import com.aditya.siteexpensemanager.service.SystemSettingsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,18 +29,15 @@ public class PayoutServiceImpl implements PayoutService {
     private final SiteRepository siteRepository;
     private final LedgerRepository ledgerRepository;
     private final LedgerMapper ledgerMapper;
+    private final SystemSettingsService systemSettingsService;
 
-    @Value("${app.food-rate-per-person:330}")
-    private BigDecimal foodRatePerPerson;
-
-    // How many days of food advance to disburse on each Mon/Wed/Fri cycle.
-    @Value("${app.payout-cycle-days:2}")
-    private int payoutCycleDays;
+    private static final Set<DayOfWeek> PAYOUT_DAYS = Set.of(
+            DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY
+    );
 
     @Override
     @Transactional(readOnly = true)
     public List<PayoutDueResponseDto> getPayoutDueList() {
-
         return siteRepository.findAllByDeletedFalse()
                 .stream()
                 .filter(Site::getActive)
@@ -59,14 +58,15 @@ public class PayoutServiceImpl implements PayoutService {
 
         Site site = getActiveSite(siteId);
 
+        if (!PAYOUT_DAYS.contains(LocalDate.now().getDayOfWeek())) {
+            throw new IllegalStateException("Payouts can only be processed on Monday, Wednesday, or Friday.");
+        }
+
         boolean alreadyPaidToday = ledgerRepository.existsBySite_IdAndSourceTypeAndTransactionDate(
-                siteId, LedgerSourceType.PAYOUT, LocalDate.now()
-        );
+                siteId, LedgerSourceType.PAYOUT, LocalDate.now());
 
         if (alreadyPaidToday) {
-            throw new IllegalStateException(
-                    "This site has already been marked paid today. Try again on the next payout cycle."
-            );
+            throw new IllegalStateException("This site has already been marked paid today.");
         }
 
         BigDecimal amountDue = calculateAmountDue(site);
@@ -87,46 +87,30 @@ public class PayoutServiceImpl implements PayoutService {
                 .build();
 
         Ledger savedLedger = ledgerRepository.save(ledger);
-
         return ledgerMapper.toResponseDto(savedLedger);
     }
 
     private Site getActiveSite(Long siteId) {
-
         Site site = siteRepository.findByIdAndDeletedFalse(siteId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Site not found with id: " + siteId
-                        )
-                );
-
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id: " + siteId));
         if (!site.getActive()) {
-            throw new IllegalStateException(
-                    "Site is inactive"
-            );
+            throw new IllegalStateException("Site is inactive");
         }
-
         return site;
     }
 
     private PayoutDueResponseDto toPayoutDueDto(Site site) {
-
-        BigDecimal amountDue = calculateAmountDue(site);
-        BigDecimal currentBalance = ledgerRepository.getBalanceBySiteId(site.getId());
+        BigDecimal balance = ledgerRepository.getBalanceBySiteId(site.getId());
+        BigDecimal amountDue = calculateAmountDue(site, balance);
 
         boolean alreadyPaidToday = ledgerRepository.existsBySite_IdAndSourceTypeAndTransactionDate(
-                site.getId(), LedgerSourceType.PAYOUT, LocalDate.now()
+                site.getId(), LedgerSourceType.PAYOUT, LocalDate.now());
+        boolean isPayoutDayToday = PAYOUT_DAYS.contains(LocalDate.now().getDayOfWeek());
+
+        return new PayoutDueResponseDto(
+                site.getId(), site.getSiteName(), site.getTeamSize(),
+                balance, amountDue, alreadyPaidToday, isPayoutDayToday
         );
-
-        PayoutDueResponseDto dto = new PayoutDueResponseDto();
-        dto.setSiteId(site.getId());
-        dto.setSiteName(site.getSiteName());
-        dto.setTeamSize(site.getTeamSize());
-        dto.setAmountDue(amountDue);
-        dto.setCurrentBalance(currentBalance);
-        dto.setAlreadyPaidToday(alreadyPaidToday);
-
-        return dto;
     }
 
     private BigDecimal calculateAmountDue(Site site) {
@@ -135,12 +119,13 @@ public class PayoutServiceImpl implements PayoutService {
 
     private BigDecimal calculateAmountDue(Site site, BigDecimal balance) {
 
-        // Base advance: N days of food for the whole team.
-        BigDecimal baseAdvance = foodRatePerPerson
-                .multiply(BigDecimal.valueOf(site.getTeamSize()))
-                .multiply(BigDecimal.valueOf(payoutCycleDays));
+        BigDecimal foodRate = systemSettingsService.getFoodRatePerPerson();
+        int cycleDays = systemSettingsService.getPayoutCycleDays();
 
-        // If the site is already in the negative, cover that shortfall too.
+        BigDecimal baseAdvance = foodRate
+                .multiply(BigDecimal.valueOf(site.getTeamSize()))
+                .multiply(BigDecimal.valueOf(cycleDays));
+
         BigDecimal shortfallCover = balance.signum() < 0 ? balance.negate() : BigDecimal.ZERO;
 
         return baseAdvance.add(shortfallCover);

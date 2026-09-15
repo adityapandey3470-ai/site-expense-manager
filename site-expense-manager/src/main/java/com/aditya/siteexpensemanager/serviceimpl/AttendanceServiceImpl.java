@@ -13,8 +13,8 @@ import com.aditya.siteexpensemanager.repository.AttendanceRepository;
 import com.aditya.siteexpensemanager.repository.LedgerRepository;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.service.AttendanceService;
+import com.aditya.siteexpensemanager.service.SystemSettingsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +29,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final SiteRepository siteRepository;
     private final LedgerRepository ledgerRepository;
     private final AttendanceMapper attendanceMapper;
-
-    // Configurable in application.properties as app.food-rate-per-person (default 330).
-    @Value("${app.food-rate-per-person:330}")
-    private BigDecimal foodRatePerPerson;
+    private final SystemSettingsService systemSettingsService;
 
     @Override
     @Transactional
@@ -64,6 +61,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                     "Attendance already marked for this site on " + requestDto.getAttendanceDate()
             );
         }
+
+        BigDecimal foodRatePerPerson = systemSettingsService.getFoodRatePerPerson();
 
         BigDecimal totalAmount = foodRatePerPerson
                 .multiply(BigDecimal.valueOf(requestDto.getPresentCount()));

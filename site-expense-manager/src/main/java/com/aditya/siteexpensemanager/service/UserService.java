@@ -12,4 +12,6 @@ public interface UserService {
     void resetPassword(Long userId, ResetPasswordRequestDto requestDto);
 
     UserResponseDto toggleActive(Long targetUserId, Long actingUserId, String confirmPassword);
+
+    void deleteUser(Long targetUserId, Long actingUserId);
 }

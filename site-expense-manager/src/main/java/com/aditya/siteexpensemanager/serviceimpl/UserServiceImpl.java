@@ -84,4 +84,31 @@ public class UserServiceImpl implements UserService {
 
         return dto;
     }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long targetUserId, Long actingUserId) {
+
+        if (targetUserId.equals(actingUserId)) {
+            throw new IllegalStateException("You cannot delete your own account.");
+        }
+
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (target.getRole() == Role.DIRECTOR) {
+            long activeDirectorCount = userRepository.findAll().stream()
+                    .filter(u -> !u.getDeleted())
+                    .filter(u -> u.getRole() == Role.DIRECTOR)
+                    .count();
+
+            if (activeDirectorCount <= 1) {
+                throw new IllegalStateException("Cannot delete the last remaining Director account.");
+            }
+        }
+
+        target.setDeleted(true);
+        target.setActive(false);
+        userRepository.save(target);
+    }
 }
