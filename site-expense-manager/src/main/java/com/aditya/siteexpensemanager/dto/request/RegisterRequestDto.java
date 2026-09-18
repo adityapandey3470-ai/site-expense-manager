@@ -26,7 +26,7 @@ public class RegisterRequestDto {
     @NotNull(message = "Role is required")
     private Role role;
 
-    // Required only when role = SUPERVISOR
+
     @Positive(message = "Site id must be greater than zero")
     private Long siteId;
 }

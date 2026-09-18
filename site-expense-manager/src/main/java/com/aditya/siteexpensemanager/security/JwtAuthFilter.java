@@ -60,8 +60,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception ex) {
-            // Invalid/expired token -> request proceeds unauthenticated,
-            // Spring Security will reject it at the authorization stage if the endpoint is protected.
             SecurityContextHolder.clearContext();
         }
 

@@ -38,7 +38,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        String clientIp = request.getRemoteAddr();
+        String clientIp = resolveClientIp(request);
         Bucket bucket = buckets.computeIfAbsent(clientIp, ip -> newBucket());
 
         if (bucket.tryConsume(1)) {
@@ -50,5 +50,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
                     "{\"error\":\"Too many attempts. Please wait a minute and try again.\"}"
             );
         }
+    }
+    private String resolveClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+
+        }
+        return request.getRemoteAddr();
     }
 }

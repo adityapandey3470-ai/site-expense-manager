@@ -77,7 +77,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         Attendance savedAttendance = attendanceRepository.save(attendance);
 
-        // Auto-accrue the food expense as a DEBIT ledger entry against the site.
+
         Ledger ledger = Ledger.builder()
                 .site(site)
                 .entryType(LedgerEntryType.DEBIT)
@@ -134,7 +134,7 @@ public class AttendanceServiceImpl implements AttendanceService {
         attendance.setDeleted(true);
         attendanceRepository.save(attendance);
 
-        // Reverse the linked ledger entry so the site balance stays correct.
+
         ledgerRepository.findAllBySiteIdAndDeletedFalse(attendance.getSite().getId())
                 .stream()
                 .filter(l -> l.getSourceType() == LedgerSourceType.ATTENDANCE

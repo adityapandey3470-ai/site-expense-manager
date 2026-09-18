@@ -56,7 +56,7 @@ public class PayoutServiceImpl implements PayoutService {
     @Transactional
     public LedgerResponseDto markSitePaid(Long siteId) {
 
-        Site site = getActiveSite(siteId);
+        Site site = getActiveSiteLocked(siteId);
 
         if (!PAYOUT_DAYS.contains(LocalDate.now().getDayOfWeek())) {
             throw new IllegalStateException("Payouts can only be processed on Monday, Wednesday, or Friday.");
@@ -129,5 +129,14 @@ public class PayoutServiceImpl implements PayoutService {
         BigDecimal shortfallCover = balance.signum() < 0 ? balance.negate() : BigDecimal.ZERO;
 
         return baseAdvance.add(shortfallCover);
+    }
+
+    private Site getActiveSiteLocked(Long siteId) {
+        Site site = siteRepository.findLockedByIdAndDeletedFalse(siteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Site not found with id: " + siteId));
+        if (!site.getActive()) {
+            throw new IllegalStateException("Site is inactive");
+        }
+        return site;
     }
 }

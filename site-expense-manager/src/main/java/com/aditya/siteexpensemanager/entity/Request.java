@@ -43,13 +43,13 @@ public class Request {
     @Column(nullable = false)
     private String description;
 
-    // Required for EMERGENCY / MATERIAL requests (estimated / actual amount to be posted to ledger).
+
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
 
-    // Only meaningful for EMERGENCY / MATERIAL requests, see ApprovalStage.
+
     @Enumerated(EnumType.STRING)
     private ApprovalStage approvalStage;
 

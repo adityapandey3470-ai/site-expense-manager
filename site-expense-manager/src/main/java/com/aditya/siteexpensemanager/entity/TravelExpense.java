@@ -62,7 +62,7 @@ public class TravelExpense {
     @Column(name = "remarks")
     private String remarks;
 
-    // Mandatory: cab/travel invoice photo or PDF must be attached before submission.
+
     @Column(name = "bill_attached", nullable = false)
     private Boolean billAttached = false;
 

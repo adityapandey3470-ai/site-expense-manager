@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    // Only relevant when role = SUPERVISOR. Left null for OPERATIONS/ACCOUNTS/DIRECTOR.
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "site_id")
     private Site site;

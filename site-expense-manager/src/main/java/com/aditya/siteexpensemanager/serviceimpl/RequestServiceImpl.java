@@ -432,7 +432,7 @@ public class RequestServiceImpl implements RequestService {
         Request updatedRequest =
                 requestRepository.save(request);
 
-        // Emergency / Material requests post straight to the ledger once fully approved.
+
         if (requiresTwoStepApproval(request.getRequestType())) {
             postApprovedRequestToLedger(updatedRequest);
         }
@@ -464,7 +464,7 @@ public class RequestServiceImpl implements RequestService {
             String rejectionReason
     ) {
 
-        Request request = getExistingRequest(id);
+        Request request = getLockedExistingRequest(id);
 
         if (approverName == null || approverName.isBlank()) {
             throw new IllegalArgumentException(
@@ -497,16 +497,6 @@ public class RequestServiceImpl implements RequestService {
         return requestMapper.toResponseDto(updatedRequest);
     }
 
-    private Request getExistingRequest(Long id) {
-
-        return requestRepository
-                .findByIdAndDeletedFalseAndSiteDeletedFalse(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Request not found with id: " + id
-                        )
-                );
-    }
 
     private Request getLockedExistingRequest(Long id) {
 

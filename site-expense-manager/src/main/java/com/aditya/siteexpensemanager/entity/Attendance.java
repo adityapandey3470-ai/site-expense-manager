@@ -31,8 +31,7 @@ public class Attendance {
     @Column(nullable = false)
     private Integer presentCount;
 
-    // Snapshot of the food rate at the time of marking, so historical entries
-    // stay correct even if the rate is changed later in application.properties.
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal foodRateApplied;
 

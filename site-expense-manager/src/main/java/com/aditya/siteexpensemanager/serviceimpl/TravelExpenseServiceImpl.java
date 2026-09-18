@@ -230,7 +230,7 @@ public class TravelExpenseServiceImpl
     @Transactional
     public void markAsApproved(Long id) {
 
-        TravelExpense travelExpense = findActiveTravelExpenseById(id);
+        TravelExpense travelExpense = findLockedActiveTravelExpenseById(id);
 
         if (travelExpense.getTravelStatus() != TravelExpenseStatus.PENDING) {
             throw new IllegalStateException(
@@ -276,7 +276,7 @@ public class TravelExpenseServiceImpl
     @Transactional
     public void markAsRejected(Long id) {
 
-        TravelExpense travelExpense = findActiveTravelExpenseById(id);
+        TravelExpense travelExpense = findLockedActiveTravelExpenseById(id);
 
         if (travelExpense.getTravelStatus() != TravelExpenseStatus.PENDING) {
             throw new IllegalStateException(
@@ -319,5 +319,15 @@ public class TravelExpenseServiceImpl
         );
 
         return travelCode;
+    }
+
+    private TravelExpense findLockedActiveTravelExpenseById(Long id) {
+        return travelExpenseRepository
+                .findLockedByIdAndDeletedFalseAndSiteDeletedFalse(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Travel expense not found with id: " + id
+                        )
+                );
     }
 }

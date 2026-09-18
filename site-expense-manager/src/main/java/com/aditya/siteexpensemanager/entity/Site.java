@@ -45,7 +45,7 @@ public class Site {
     @Column(nullable = false)
     private LocalDate endDate;
 
-    // Number of workers assigned to this site; drives default food accrual and payout calculation.
+
     @Column(nullable = false)
     private Integer teamSize;
 

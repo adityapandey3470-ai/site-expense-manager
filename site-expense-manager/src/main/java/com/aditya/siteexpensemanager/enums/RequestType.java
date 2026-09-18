@@ -5,7 +5,6 @@ public enum RequestType {
     ADVANCE,
     REIMBURSEMENT,
     OTHER,
-    // Go through the two-step Operations -> Accounts/Director approval chain.
     EMERGENCY,
     MATERIAL
 }

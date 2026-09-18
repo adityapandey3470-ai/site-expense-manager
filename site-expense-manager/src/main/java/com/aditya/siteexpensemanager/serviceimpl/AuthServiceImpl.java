@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public UserResponseDto register(RegisterRequestDto requestDto) {
+    public synchronized UserResponseDto register(RegisterRequestDto requestDto) {
 
             if (userRepository.count() == 0) {
 

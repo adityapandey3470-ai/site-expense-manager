@@ -29,7 +29,6 @@ public class RequestRequestDto {
     @NotBlank(message = "Description is required")
     private String description;
 
-    // Required when requestType is EMERGENCY or MATERIAL; validated in the service layer.
     @Positive(message = "Amount must be greater than zero")
     private BigDecimal amount;
 }

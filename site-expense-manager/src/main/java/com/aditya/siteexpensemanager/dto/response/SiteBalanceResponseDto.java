@@ -18,6 +18,5 @@ public class SiteBalanceResponseDto {
     private String supervisorSiteCode;
     private Integer teamSize;
     private BigDecimal balance;
-    // true when the team has spent more than what was disbursed (negative balance).
     private boolean inMinus;
 }
