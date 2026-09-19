@@ -25,6 +25,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        logger.warn("Resource not found: {}", ex.getMessage());
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
@@ -38,6 +39,7 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
 
+        logger.warn("Validation failed on {}: {}", ex.getObjectName(), errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
@@ -46,42 +48,49 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException.class
     })
     public ResponseEntity<ErrorResponseDto> handleMalformedRequest(Exception ex) {
+        logger.warn("Malformed request: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, "Invalid request value");
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolation(
             DataIntegrityViolationException ex) {
+        logger.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         return build(HttpStatus.CONFLICT, "Request conflicts with existing data");
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponseDto> handleMaxUploadSizeExceeded(
             MaxUploadSizeExceededException ex) {
+        logger.warn("Upload rejected — file too large");
         return build(HttpStatus.BAD_REQUEST, "File is too large. Maximum allowed size is 10MB.");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponseDto> handleIllegalArgumentException(
             IllegalArgumentException ex) {
+        logger.warn("Bad request: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponseDto> handleIllegalStateException(
             IllegalStateException ex) {
+        logger.warn("Business rule violation: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponseDto> handleBadCredentialsException(
             BadCredentialsException ex) {
+        logger.warn("Authentication failed: {}", ex.getMessage());
         return build(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponseDto> handleAccessDeniedException(
             AccessDeniedException ex) {
+        logger.warn("Access denied: {}", ex.getMessage());
         return build(HttpStatus.FORBIDDEN, "You do not have permission to perform this action");
     }
 
