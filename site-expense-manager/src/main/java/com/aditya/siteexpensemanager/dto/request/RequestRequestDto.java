@@ -20,7 +20,6 @@ public class RequestRequestDto {
     @Positive(message = "Travel expense id must be greater than zero")
     private Long travelExpenseId;
 
-    @NotBlank(message = "Requested by is required")
     private String requestedBy;
 
     @NotNull(message = "Request type is required")

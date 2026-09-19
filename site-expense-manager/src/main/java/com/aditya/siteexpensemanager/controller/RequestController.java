@@ -125,6 +125,7 @@ public class RequestController {
 
     @Operation(summary = "Activate a request")
     @PatchMapping("/{id}/activate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
     public ResponseEntity<RequestResponseDto> activateRequest(
             @PathVariable Long id) {
 
@@ -135,6 +136,7 @@ public class RequestController {
 
     @Operation(summary = "Deactivate a request")
     @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasAnyAuthority('ROLE_ACCOUNTS', 'ROLE_DIRECTOR')")
     public ResponseEntity<RequestResponseDto> deactivateRequest(
             @PathVariable Long id) {
 
