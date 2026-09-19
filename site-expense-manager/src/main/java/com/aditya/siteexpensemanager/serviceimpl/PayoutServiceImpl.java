@@ -126,9 +126,8 @@ public class PayoutServiceImpl implements PayoutService {
                 .multiply(BigDecimal.valueOf(site.getTeamSize()))
                 .multiply(BigDecimal.valueOf(cycleDays));
 
-        BigDecimal shortfallCover = balance.signum() < 0 ? balance.negate() : BigDecimal.ZERO;
 
-        return baseAdvance.add(shortfallCover);
+        return baseAdvance.subtract(balance);
     }
 
     private Site getActiveSiteLocked(Long siteId) {
