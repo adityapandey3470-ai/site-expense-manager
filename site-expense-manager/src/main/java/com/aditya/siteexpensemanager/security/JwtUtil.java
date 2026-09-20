@@ -1,11 +1,11 @@
 package com.aditya.siteexpensemanager.security;
 
+import com.aditya.siteexpensemanager.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -17,14 +17,14 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${app.jwt.secret}")
-    private String jwtSecret;
+    private final JwtProperties jwtProperties;
 
-    @Value("${app.jwt.expiration-ms}")
-    private long jwtExpirationMs;
+    public JwtUtil(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     private SecretKey signingKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
     }
 
     public String generateToken(String username, Long userId, String role, Long siteId) {
@@ -37,7 +37,7 @@ public class JwtUtil {
         }
 
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + jwtExpirationMs);
+        Date expiry = new Date(now.getTime() + jwtProperties.getExpirationMs());
 
         return Jwts.builder()
                 .setClaims(claims)

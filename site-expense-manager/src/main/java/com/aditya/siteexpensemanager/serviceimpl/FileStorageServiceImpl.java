@@ -1,9 +1,11 @@
 package com.aditya.siteexpensemanager.serviceimpl;
 
+import com.aditya.siteexpensemanager.config.CloudinaryProperties;
 import com.aditya.siteexpensemanager.service.FileStorageService;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,16 +16,11 @@ import java.util.Map;
 public class FileStorageServiceImpl implements FileStorageService {
 
     private final Cloudinary cloudinary;
-
-    public FileStorageServiceImpl(
-            @Value("${cloudinary.cloud-name}") String cloudName,
-            @Value("${cloudinary.api-key}") String apiKey,
-            @Value("${cloudinary.api-secret}") String apiSecret
-    ) {
+    public FileStorageServiceImpl(CloudinaryProperties cloudinaryProperties) {
         this.cloudinary = new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", cloudName,
-                "api_key", apiKey,
-                "api_secret", apiSecret,
+                "cloud_name", cloudinaryProperties.getCloudName(),
+                "api_key", cloudinaryProperties.getApiKey(),
+                "api_secret", cloudinaryProperties.getApiSecret(),
                 "secure", true,
                 "timeout", 15000,
                 "connectTimeout", 10000
@@ -31,6 +28,11 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    @Retryable(
+            retryFor = IOException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public String uploadFile(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
