@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bricks, Car, UtensilsCrossed, Banknote, ArrowRight } from "lucide-react";
+import { Package, Car, UtensilsCrossed, Banknote, ArrowRight } from "lucide-react";
 
 const SLIDES = [
     {
-        icon: Bricks,
+        icon: Package,
         colorVar: "--accent",
         bgVar: "--accent-bg",
         title: "Raise and approve requests",
@@ -18,14 +18,14 @@ const SLIDES = [
         description: "Mark daily site attendance and travel expenses in seconds, from your phone.",
     },
     {
-        icon: null, // special: summary slide with chart
+        icon: null,
         title: "See where money goes",
         description: "Live balances and spend breakdown, per site.",
     },
 ];
 
 const BREAKDOWN = [
-    { label: "Material", pct: 43, icon: Bricks, colorVar: "--accent", bgVar: "--accent-bg" },
+    { label: "Material", pct: 43, icon: Package, colorVar: "--accent", bgVar: "--accent-bg" },
     { label: "Travel", pct: 29, icon: Car, colorVar: "--success", bgVar: "--success-bg" },
     { label: "Food accrual", pct: 23, icon: UtensilsCrossed, colorVar: "--warning", bgVar: "--warning-bg" },
     { label: "Advance", pct: 17, icon: Banknote, colorVar: "--danger", bgVar: "--danger-bg" },
