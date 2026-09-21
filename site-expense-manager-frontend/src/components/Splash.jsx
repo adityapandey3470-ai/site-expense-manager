@@ -34,7 +34,7 @@ export default function Splash({ onFinish }) {
                 style={{
                     width: 80,
                     height: 80,
-                    borderRadius: 20,
+                    borderRadius: 0,
                     background: "var(--accent-bg)",
                     display: "flex",
                     alignItems: "center",
