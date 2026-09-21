@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, Car, UtensilsCrossed, Banknote, ArrowRight } from "lucide-react";
+import { Car, UtensilsCrossed, Banknote, ArrowRight } from "lucide-react";
+import BuildingSkyscraperIcon from "../components/icons/BuildingSkyscraperIcon";
 
 const SLIDES = [
     {
-        icon: Building2,
+        icon: BuildingSkyscraperIcon,
         colorVar: "--accent",
         bgVar: "--accent-bg",
         title: "Raise and approve requests",
@@ -25,7 +26,7 @@ const SLIDES = [
 ];
 
 const BREAKDOWN = [
-    { label: "Material", pct: 43, icon: Building2, colorVar: "--accent", bgVar: "--accent-bg" },
+    { label: "Material", pct: 43, icon: BuildingSkyscraperIcon, colorVar: "--accent", bgVar: "--accent-bg" },
     { label: "Travel", pct: 29, icon: Car, colorVar: "--success", bgVar: "--success-bg" },
     { label: "Food accrual", pct: 23, icon: UtensilsCrossed, colorVar: "--warning", bgVar: "--warning-bg" },
     { label: "Advance", pct: 17, icon: Banknote, colorVar: "--danger", bgVar: "--danger-bg" },

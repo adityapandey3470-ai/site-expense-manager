@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Building2 } from "lucide-react";
+import BuildingSkyscraperIcon from "./icons/BuildingSkyscraperIcon";
 
 export default function Splash({ onFinish }) {
     const [visible, setVisible] = useState(true);
@@ -42,7 +42,7 @@ export default function Splash({ onFinish }) {
                     animation: "splash-icon-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
                 }}
             >
-                <Building2 size={36} color="var(--accent)" strokeWidth={1.7} />
+                <BuildingSkyscraperIcon size={36} color="var(--accent)" strokeWidth={1.7} />
             </div>
 
             <div
