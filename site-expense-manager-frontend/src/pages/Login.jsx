@@ -46,7 +46,7 @@ export default function Login() {
               style={{
                   width: 56,
                   height: 56,
-                  borderRadius: 0,
+                  borderRadius: 16,
                   background: "var(--accent-bg)",
                   display: "flex",
                   alignItems: "center",
