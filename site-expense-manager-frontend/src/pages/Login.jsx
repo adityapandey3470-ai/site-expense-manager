@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/Spinner";
-import { Building2 } from "lucide-react";
+import BuildingSkyscraperIcon from "../components/icons/BuildingSkyscraperIcon";
 import { Eye, EyeOff } from "lucide-react";
 import {getErrorMessage} from "../api/client.js";
 
@@ -54,7 +54,7 @@ export default function Login() {
                   margin: "0 auto 12px",
               }}
           >
-              <Building2 size={26} color="var(--accent)" strokeWidth={1.8} />
+              <BuildingSkyscraperIcon size={26} color="var(--accent)" strokeWidth={1.8} />
           </div>
         <p style={{ fontSize: 20, fontWeight: 500, margin: 0 }}>Site expense manager</p>
         <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "4px 0 0" }}>
