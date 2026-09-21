@@ -25,16 +25,27 @@ import ChangePassword from "./pages/ChangePassword.jsx";
 import NewSite from "./pages/NewSite.jsx";
 import Settings from "./pages/Settings";
 import DirectorDashboard from "./pages/DirectorDashboard";
+import Welcome from "./pages/Welcome";
+import { useState } from "react";
+import Splash from "./components/Splash";
 
 export default function App() {
+    const [showSplash, setShowSplash] = useState(true);
+
+    const handleSplashFinish = () => {
+        setShowSplash(false);
+    };
+
   return (
       <ThemeProvider>
       <ToastProvider>
     <AuthProvider>
         <BrowserRouter>
+          {showSplash && <Splash onFinish={handleSplashFinish} />}
         <div className="app-shell">
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/welcome" element={<Welcome />} />
 
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Home />} />
@@ -62,6 +73,7 @@ export default function App() {
               <Route path="/travel/:id/edit" element={<NewTravelExpense />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/dashboard" element={<DirectorDashboard />} />
+
 
             </Route>
           </Routes>

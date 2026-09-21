@@ -204,4 +204,7 @@ a.card:hover {
   appearance: none;
   font-size: 14px;
   text-align: left;
+  height: 42px;
+  line-height: 20px;
+  padding: 10px 12px;
 }

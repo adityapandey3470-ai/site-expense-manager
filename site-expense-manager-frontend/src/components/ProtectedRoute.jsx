@@ -5,9 +5,10 @@ import BottomNav from "./BottomNav";
 export default function ProtectedRoute() {
   const { user } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+    if (!user) {
+        const hasSeenOnboarding = localStorage.getItem("hasSeenOnboarding");
+        return <Navigate to={hasSeenOnboarding ? "/login" : "/welcome"} replace />;
+    }
 
   return (
     <>
