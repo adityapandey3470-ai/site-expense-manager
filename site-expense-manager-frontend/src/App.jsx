@@ -32,16 +32,13 @@ import Splash from "./components/Splash";
 export default function App() {
     const [showSplash, setShowSplash] = useState(true);
 
-    const handleSplashFinish = () => {
-        setShowSplash(false);
-    };
 
   return (
       <ThemeProvider>
       <ToastProvider>
     <AuthProvider>
         <BrowserRouter>
-          {showSplash && <Splash onFinish={handleSplashFinish} />}
+          {showSplash && <Splash onFinish={() => setShowSplash(false)} />}
         <div className="app-shell">
           <Routes>
             <Route path="/login" element={<Login />} />
