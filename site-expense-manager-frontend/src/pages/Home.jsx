@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import StatusBadge from "../components/StatusBadge"
-import {CheckSquare, PlusCircle, Car, FileText, Building2, Wallet, Download, ShieldCheck, Users} from "lucide-react";
+import StatusBadge from "../components/StatusBadge";
 import { ClipboardList } from "lucide-react";
 import { HardHat, Settings2, Calculator, Crown } from "lucide-react";
 import usePullToRefresh from "../hooks/usePullToRefresh";
 import Spinner from "../components/Spinner";
+import { CheckSquare, PlusCircle, Car, FileText, Wallet, Download, Users, ShieldCheck, LayoutDashboard, BarChart3 } from "lucide-react";
+import BuildingSkyscraperIcon from "../components/icons/BuildingSkyscraperIcon";
+
 
 const ROLE_ICONS = {
     SUPERVISOR: HardHat,
@@ -60,7 +62,7 @@ export default function Home() {
         ],
         OPERATIONS: [
             { to: "/requests", Icon: FileText, label: "Pending approvals" },
-            { to: "/sites", Icon: Building2, label: "Sites" },
+            { to: "/sites", Icon: BuildingSkyscraperIcon, label: "Sites" },
             { to: "/attendance", Icon: CheckSquare, label: "Attendance" },
             { to: "/travel-expenses", Icon: Car, label: "Travel expenses" },
         ],
@@ -69,19 +71,21 @@ export default function Home() {
             { to: "/payouts", Icon: Wallet, label: "Payouts" },
             { to: "/ledger/new", Icon: PlusCircle, label: "New ledger entry" },
             { to: "/travel-expenses", Icon: Car, label: "Travel expenses" },
-            { to: "/ledger/summary", Icon: FileText, label: "Ledger summary" },
             { to: "/export", Icon: Download, label: "Export reports" },
-            { to: "/dashboard", Icon: ShieldCheck, label: "Dashboard" },
+            { to: "/dashboard", Icon: LayoutDashboard, label: "Dashboard" },
+            { to: "/ledger/summary", Icon: BarChart3, label: "Ledger summary" },
+
         ],
         DIRECTOR: [
             { to: "/requests", Icon: FileText, label: "All requests" },
-            { to: "/sites", Icon: Building2, label: "Sites" },
-            { to: "/ledger/summary", Icon: FileText, label: "Ledger summary" },
+            { to: "/sites", Icon: BuildingSkyscraperIcon, label: "Sites" },
             { to: "/attendance", Icon: CheckSquare, label: "Attendance" },
             { to: "/export", Icon: Download, label: "Export reports" },
             { to: "/ledger/new", Icon: PlusCircle, label: "New ledger entry" },
             { to: "/admin/users", Icon: Users, label: "Manage users" },
-            { to: "/dashboard", Icon: ShieldCheck, label: "Dashboard" },
+            { to: "/dashboard", Icon: LayoutDashboard, label: "Dashboard" },
+            { to: "/ledger/summary", Icon: BarChart3, label: "Ledger summary" },
+
         ],
     };
 
