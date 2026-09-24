@@ -1,5 +1,6 @@
 package com.aditya.siteexpensemanager.serviceimpl;
 
+import com.aditya.siteexpensemanager.config.SystemSettingsDefaultsProperties;
 import com.aditya.siteexpensemanager.dto.request.SystemSettingsRequestDto;
 import com.aditya.siteexpensemanager.dto.response.SystemSettingsResponseDto;
 import com.aditya.siteexpensemanager.entity.SystemSettings;
@@ -17,13 +18,10 @@ import java.math.BigDecimal;
 public class SystemSettingsServiceImpl implements SystemSettingsService {
 
     private final SystemSettingsRepository systemSettingsRepository;
+    private final SystemSettingsDefaultsProperties defaultsProperties;
 
 
-    @Value("${app.food-rate-per-person:330}")
-    private BigDecimal defaultFoodRate;
 
-    @Value("${app.payout-cycle-days:2}")
-    private int defaultCycleDays;
 
     @Override
     @Transactional
@@ -59,8 +57,8 @@ public class SystemSettingsServiceImpl implements SystemSettingsService {
                 .orElseGet(() -> {
                     SystemSettings fresh = new SystemSettings();
                     fresh.setId(1L);
-                    fresh.setFoodRatePerPerson(defaultFoodRate);
-                    fresh.setPayoutCycleDays(defaultCycleDays);
+                    fresh.setFoodRatePerPerson(defaultsProperties.getFoodRatePerPerson());
+                    fresh.setPayoutCycleDays(defaultsProperties.getPayoutCycleDays());
                     return systemSettingsRepository.save(fresh);
                 });
     }

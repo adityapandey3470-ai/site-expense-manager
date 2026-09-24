@@ -2,6 +2,7 @@ package com.aditya.siteexpensemanager.controller;
 
 import com.aditya.siteexpensemanager.dto.request.ChangePasswordRequestDto;
 import com.aditya.siteexpensemanager.dto.request.LoginRequestDto;
+import com.aditya.siteexpensemanager.dto.request.RefreshTokenRequestDto;
 import com.aditya.siteexpensemanager.dto.request.RegisterRequestDto;
 import com.aditya.siteexpensemanager.dto.response.JwtResponseDto;
 import com.aditya.siteexpensemanager.dto.response.UserResponseDto;
@@ -30,6 +31,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<JwtResponseDto> login(@Valid @RequestBody LoginRequestDto requestDto) {
         return ResponseEntity.ok(authService.login(requestDto));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtResponseDto> refreshToken(@Valid @RequestBody RefreshTokenRequestDto requestDto) {
+        return ResponseEntity.ok(authService.refreshAccessToken(requestDto));
     }
 
     @Operation(summary = "Change your own password (requires current password)")

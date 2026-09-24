@@ -1,14 +1,18 @@
 package com.aditya.siteexpensemanager.serviceimpl;
 
+import com.aditya.siteexpensemanager.config.JwtProperties;
 import com.aditya.siteexpensemanager.dto.request.ChangePasswordRequestDto;
 import com.aditya.siteexpensemanager.dto.request.LoginRequestDto;
+import com.aditya.siteexpensemanager.dto.request.RefreshTokenRequestDto;
 import com.aditya.siteexpensemanager.dto.request.RegisterRequestDto;
 import com.aditya.siteexpensemanager.dto.response.JwtResponseDto;
 import com.aditya.siteexpensemanager.dto.response.UserResponseDto;
+import com.aditya.siteexpensemanager.entity.RefreshToken;
 import com.aditya.siteexpensemanager.entity.Site;
 import com.aditya.siteexpensemanager.entity.User;
 import com.aditya.siteexpensemanager.enums.Role;
 import com.aditya.siteexpensemanager.exception.ResourceNotFoundException;
+import com.aditya.siteexpensemanager.repository.RefreshTokenRepository;
 import com.aditya.siteexpensemanager.repository.SiteRepository;
 import com.aditya.siteexpensemanager.repository.UserRepository;
 import com.aditya.siteexpensemanager.security.JwtUtil;
@@ -24,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,45 +41,47 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtProperties jwtProperties;
 
-
-
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private static final int LOCKOUT_MINUTES = 15;
 
     @Override
     @Transactional
     public synchronized UserResponseDto register(RegisterRequestDto requestDto) {
 
-            if (userRepository.count() == 0) {
+        if (userRepository.count() == 0) {
 
-                if (requestDto.getRole() == Role.SUPERVISOR && requestDto.getSiteId() == null) {
-                    throw new IllegalArgumentException("Site id is required for SUPERVISOR role");
-                }
-
-                Site bootstrapSite = null;
-                if (requestDto.getRole() == Role.SUPERVISOR) {
-                    bootstrapSite = siteRepository.findByIdAndDeletedFalse(requestDto.getSiteId())
-                            .orElseThrow(() -> new ResourceNotFoundException(
-                                    "Site not found with id: " + requestDto.getSiteId()));
-                }
-
-                User firstUser = new User();
-                firstUser.setFullName(requestDto.getFullName());
-                firstUser.setUsername(requestDto.getUsername());
-                firstUser.setPassword(passwordEncoder.encode(requestDto.getPassword()));
-                firstUser.setRole(requestDto.getRole());
-                firstUser.setSite(bootstrapSite);
-                firstUser.setActive(true);
-                firstUser.setDeleted(false);
-
-                return toResponseDto(userRepository.save(firstUser));
+            if (requestDto.getRole() == Role.SUPERVISOR && requestDto.getSiteId() == null) {
+                throw new IllegalArgumentException("Site id is required for SUPERVISOR role");
             }
 
-            if (requestDto.getRole() != Role.SUPERVISOR) {
-                throw new IllegalArgumentException(
-                        "Self-registration is only allowed for SUPERVISOR. "
-                                + "Contact a DIRECTOR to create accounts for other roles."
-                );
+            Site bootstrapSite = null;
+            if (requestDto.getRole() == Role.SUPERVISOR) {
+                bootstrapSite = siteRepository.findByIdAndDeletedFalse(requestDto.getSiteId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Site not found with id: " + requestDto.getSiteId()));
             }
+
+            User firstUser = new User();
+            firstUser.setFullName(requestDto.getFullName());
+            firstUser.setUsername(requestDto.getUsername());
+            firstUser.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+            firstUser.setRole(requestDto.getRole());
+            firstUser.setSite(bootstrapSite);
+            firstUser.setActive(true);
+            firstUser.setDeleted(false);
+
+            return toResponseDto(userRepository.save(firstUser));
+        }
+
+        if (requestDto.getRole() != Role.SUPERVISOR) {
+            throw new IllegalArgumentException(
+                    "Self-registration is only allowed for SUPERVISOR. "
+                            + "Contact a DIRECTOR to create accounts for other roles."
+            );
+        }
 
         if (userRepository.existsByUsername(requestDto.getUsername())) {
             throw new IllegalStateException(
@@ -117,12 +124,6 @@ public class AuthServiceImpl implements AuthService {
 
         return toResponseDto(savedUser);
     }
-
-
-
-    private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final int LOCKOUT_MINUTES = 15;
-
 
     @Override
     @Transactional
@@ -185,11 +186,60 @@ public class AuthServiceImpl implements AuthService {
                 user.getUsername(), user.getId(), user.getRole().name(), siteId
         );
 
+        String refreshToken = createRefreshToken(user);
+
         return new JwtResponseDto(
-                token, user.getId(), user.getUsername(), user.getFullName(), user.getRole(), siteId
+                token, refreshToken, user.getId(), user.getUsername(), user.getFullName(), user.getRole(), siteId
         );
     }
 
+    @Override
+    @Transactional
+    public JwtResponseDto refreshAccessToken(RefreshTokenRequestDto requestDto) {
+
+        RefreshToken storedToken = refreshTokenRepository
+                .findByTokenAndRevokedFalse(requestDto.getRefreshToken())
+                .orElseThrow(() -> new BadCredentialsException("Invalid refresh token"));
+
+        if (storedToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new BadCredentialsException("Refresh token expired. Please log in again.");
+        }
+
+
+        storedToken.setRevoked(true);
+        refreshTokenRepository.save(storedToken);
+
+        User user = storedToken.getUser();
+
+        if (!user.getActive()) {
+            throw new IllegalStateException("User account is deactivated");
+        }
+
+        Long siteId = user.getSite() != null ? user.getSite().getId() : null;
+
+        String newAccessToken = jwtUtil.generateToken(
+                user.getUsername(), user.getId(), user.getRole().name(), siteId
+        );
+        String newRefreshToken = createRefreshToken(user);
+
+        return new JwtResponseDto(
+                newAccessToken, newRefreshToken, user.getId(), user.getUsername(), user.getFullName(), user.getRole(), siteId
+        );
+    }
+
+    private String createRefreshToken(User user) {
+        String tokenValue = UUID.randomUUID().toString();
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(tokenValue)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusDays(jwtProperties.getRefreshExpirationDays()))
+                .revoked(false)
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
+        return tokenValue;
+    }
 
     @Transactional
     @Override

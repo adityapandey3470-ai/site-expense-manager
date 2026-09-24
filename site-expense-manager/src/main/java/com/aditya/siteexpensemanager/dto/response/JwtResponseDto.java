@@ -17,14 +17,19 @@ public class JwtResponseDto {
     private String fullName;
     private Role role;
     private Long siteId;
+    private String refreshToken;
 
-    public JwtResponseDto(String token, Long userId, String username, String fullName, Role role, Long siteId) {
+
+    public JwtResponseDto(String token, String refreshToken, Long userId, String username, String fullName, Role role, Long siteId) {
         this.token = token;
+        this.refreshToken = refreshToken;
         this.tokenType = "Bearer";
         this.userId = userId;
         this.username = username;
         this.fullName = fullName;
         this.role = role;
         this.siteId = siteId;
+
     }
+
 }
